@@ -1,0 +1,11 @@
+#+startup: latexpreview
+#+filetags: :some:tags:
+
+* %^{title}
+:PROPERTIES:
+:AUTHOR: %^{author}
+:YEAR: %^{year}
+:NOTER_DOCUMENT: %^{file}  
+:NOTER_PAGE:               
+:END:
+

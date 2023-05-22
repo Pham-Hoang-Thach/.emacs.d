@@ -1,0 +1,16 @@
+#+startup: latexpreview
+#+filetags: %^{keywords}
++ Abstract :: %^{abstract}
+
+* %^{title}
+:PROPERTIES:
+:AUTHOR: %^{author}
+:YEAR: %^{year}
+:KEYWORDS: %^{keywords}
+:METHODOLOGIES: (regressions/ portfolio analysis)
+:DATA: (where & time/ data structures (cross-sectional/ time-series/ panel))
+:ROBUSTNESS: (Newey-West/ clustering/ subperiods/ out-of-sample/ remove variables or sectors)
+:TEST: (GRS/ Multicollinearity/ Heteroskedasticity)
+:NOTER_DOCUMENT: %^{file}  
+:NOTER_PAGE:               
+:END:

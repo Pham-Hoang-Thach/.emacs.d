@@ -1,0 +1,2 @@
+* Meeting/ Conference/ Review/ Supervision %?			:context:                                       
+ "<%<%Y-%m-%d %a %H:00>>"

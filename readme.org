@@ -1,0 +1,755 @@
+#+title: Emacs Configurations
+#+author: Thach H. Pham
+#+description: Emacs Configurations with Debian (WSL2)
+#+language: en
+#+property: results silent
+
+* General Setup
+*** UTF-8 Encoding
+
+#+begin_src elisp
+  (setq locale-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (set-clipboard-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (setq default-buffer-file-coding-system 'utf-8)
+  (set-language-environment "UTF-8")
+  (setq tab-width 4)
+#+end_src
+
+*** Stop Emacs Littering
+
+#+begin_src elisp
+  ;; Avoid #file.org# to appear
+  (auto-save-visited-mode)
+  (setq create-lockfiles nil)
+  ;; Avoid filename.ext~ to appear
+  (setq make-backup-files nil)
+#+end_src
+
+*** Additional Aesthetic
+
+#+begin_src elisp
+  (show-paren-mode 1)
+  (setq inhibit-startup-screen t)
+  (setq inhibit-startup-echo-area-message t)
+  (setq inhibit-startup-message t)
+  (setq initial-scratch-message nil)
+  (setq initial-major-mode 'org-mode)
+  (setq-default indent-tabs-mode nil)
+  (setq pop-up-windows nil)
+  (tool-bar-mode 0) 
+  (tooltip-mode  1)
+  (scroll-bar-mode 0)
+  (menu-bar-mode 0)
+  (global-visual-line-mode 1)
+  ;; Line cursor and no blink
+  (set-default 'cursor-type  '(bar . 1))
+  (blink-cursor-mode 0)
+  ;; Line spacing, can be 0 for code and 1 or 2 for text
+  (setq-default line-spacing 2)
+  ;; Underline line at descent position, not baseline position
+  (setq x-underline-at-descent-line t)
+#+end_src
+
+* Packages
+*** Doom Themes
+
+#+begin_src elisp
+  (setq custom-safe-themes t)
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-nord t)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
+#+end_src
+
+*** Doom Modeline
+
+#+begin_src elisp
+  (use-package doom-modeline)
+  (add-hook 'after-init-hook #'doom-modeline-mode)
+  (add-hook 'inferior-ess-mode-hook
+        (lambda ()
+          (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
+#+end_src
+
+*** Org Superstars
+
+#+begin_src elisp
+  (use-package org-superstar
+       :config
+       (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "❀" "☢" "☯" "✜" "◆" "▶"))
+       (setq org-ellipsis " ▼")
+       (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+#+end_src
+
+*** All The Icons Ivy
+
+#+begin_src elisp
+  (use-package all-the-icons-ivy
+    :ensure t :ensure all-the-icons
+    :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
+#+end_src
+
+*** Ivy, Counsel & Swiper
+
+#+begin_src elisp
+  (use-package ivy
+    :ensure t :ensure counsel :ensure swiper)
+  ;; Enable Ivy mode in general
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  ;; Add Counsel and Swiper search functions
+  (global-set-key (kbd "C-c f r") #'counsel-recentf)
+  (global-set-key (kbd "C-s") #'swiper)
+  ;; Replace default "M-x" and "C-x C-f" with Counsel version
+  (global-set-key (kbd "M-x") #'counsel-M-x)
+  (global-set-key (kbd "C-x C-f") #'counsel-find-file)
+  ;; Replace describe-function and describe-variable with Counsel version
+  (global-set-key (kbd "C-h f") 'counsel-describe-function)
+  (global-set-key (kbd "C-h v") 'counsel-describe-variable)
+#+end_src
+ 
+*** Olivetti
+
+#+begin_src elisp
+  (use-package olivetti)
+  ;; Set the body text width
+  (setq olivetti-body-width 80)
+  ;; Enable Olivetti for text-related mode such as Org Mode
+  ;(add-hook 'text-mode-hook 'olivetti-mode)
+
+#+end_src
+  
+*** Org Fragtog
+
+#+begin_src elisp
+  (use-package org-fragtog)
+  (add-hook 'org-mode-hook 'org-fragtog-mode)
+#+end_src
+
+*** Which Key
+
+#+begin_src elisp
+  (use-package which-key
+    :init (which-key-mode)
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0))
+#+end_src
+
+*** Magit
+
+#+begin_src elisp
+  (use-package magit)
+  (global-set-key (kbd "C-c g") 'magit-file-dispatch)
+#+end_src
+
+*** PDF Tools
+
+#+begin_src elisp
+  (use-package pdf-tools)
+  (pdf-loader-install)
+  (setq auto-revert-interval 0.5)
+  (auto-revert-set-timer)
+  ;; (add-to-list 'auto-mode-alist '("\\.pdf\\'" . doc-view-mode))
+  ;; (add-hook 'doc-view-mode-hook #'pdf-tools-install)
+  ;; Auto revert
+  ;; (add-hook 'TeX-after-compilation-finished-functions  #'TeX-revert-document-buffer)
+#+end_src
+
+*** Org Noter, Org PDFTools & Org Noter PDFTools
+
+#+begin_src elisp
+  (use-package org-noter
+    ;;(setq org-noter-notes-search-path '("/mnt/thach/ws/emacs/noter"))
+    :init
+    (setq org-noter-always-create-frame nil)
+    (setq org-noter-separate-notes-from-heading t)
+    :config
+    ;; Your org-noter config ........
+    (require 'org-noter-pdftools))
+  (use-package org-pdftools
+    :hook (org-mode . org-pdftools-setup-link))
+  (use-package org-noter-pdftools
+    :after org-noter
+    :config
+    ;; Add a function to ensure precise note is inserted
+    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                     (not org-noter-insert-note-no-questions)
+                                                   org-noter-insert-note-no-questions))
+             (org-pdftools-use-isearch-link t)
+             (org-pdftools-use-freestyle-annot t))
+         (org-noter-insert-note (org-noter--get-precise-info)))))
+    ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+    (defun org-noter-set-start-location (&optional arg)
+      "When opening a session with this document, go to the current location.
+  With a prefix ARG, remove start location."
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((inhibit-read-only t)
+             (ast (org-noter--parse-root))
+             (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+         (with-current-buffer (org-noter--session-notes-buffer session)
+           (org-with-wide-buffer
+            (goto-char (org-element-property :begin ast))
+            (if arg
+                (org-entry-delete nil org-noter-property-note-location)
+              (org-entry-put nil org-noter-property-note-location
+                             (org-noter--pretty-print-location location))))))))
+    (with-eval-after-load 'pdf-annot
+      (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+#+end_src
+  
+*** Org Roam
+
+#+begin_src elisp
+  (use-package org-roam
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "/mnt/thach/ws/emacs/roam")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert))
+    :config
+    (org-roam-setup))
+  (require 'org-roam)
+  ;; Create the property "type"
+    (cl-defmethod org-roam-node-type ((node org-roam-node))
+      "Return the TYPE of NODE."
+      (condition-case nil
+          (file-name-nondirectory
+           (directory-file-name
+            (file-name-directory
+             (file-relative-name (org-roam-node-file node) org-roam-directory))))
+        (error "")))
+  ;; Display node types
+  (setq org-roam-node-display-template
+        (concat "${type:15} ${title:30} " (propertize "${tags}" 'face 'org-tag)))
+#+end_src
+
+*** Org Ref, Helm Bibtex & ORB
+
+#+begin_src elisp
+  (use-package org-roam-bibtex
+    :ensure t :ensure helm-bibtex :ensure org-ref)
+  ;; Set up bibliography
+  (setq bibtex-completion-bibliography '("/mnt/thach/ws/emacs/gtd/bibtex.bib"))
+  ;; Set up notes
+  (setq bibtex-completion-notes-path "/mnt/thach/ws/emacs/roam/")
+  ;; Open pdf files stored in Zotero
+  (setq bibtex-completion-pdf-field "File")
+  ;; Customize layout of search results
+  '((t . "${author:36} ${title:*} ${year:4} ${=has-pdf=:1}${=has-note=:1} ${=type=:7}"))
+  ;; Fields used for searching
+  (setq bibtex-completion-additional-search-fields '(keywords))
+  ;; Org-ref-helm
+  (require 'org-ref-helm)
+  (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+        org-ref-insert-cite-function 'org-ref-cite-insert-helm
+        org-ref-insert-label-function 'org-ref-insert-label-link
+        org-ref-insert-ref-function 'org-ref-insert-ref-link
+        org-ref-cite-onclick-function (lambda (_)
+                                        (org-ref-citation-hydra/body)))
+  ;; Org-ref kbd
+  (define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
+  ;; Org-roam-bibtex
+  (require `org-roam-bibtex)
+  (add-hook 'after-init-hook #'org-roam-bibtex-mode)
+  (define-key org-roam-bibtex-mode-map (kbd "C-c n a") #'orb-note-actions)
+  ;;ORB with Org-noter
+  (setq orb-preformat-keywords
+        '("citekey" "author" "year" "title" "abstract" "keywords" "file")
+        orb-process-file-keyword t
+        orb-file-field-extensions '("pdf"))
+  ;;ORB template
+  (setq org-roam-capture-templates
+        '(("b" "books" plain
+           (file "~/.emacs.d/capture/books.org")
+           :if-new
+           (file+head "books/%<%Y%m%d%H%M%S>-${citekey}.org"
+                      "#+title: ${author} (${year})\n")
+           :unarrowed t)
+          ("i" "indices" plain "%?"
+           :if-new
+           (file+head "indices/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n")
+           :unnarrowed t)
+          ("j" "journals" plain 
+           (file "~/.emacs.d/capture/journals.org")
+           :if-new
+           (file+head "journals/%<%Y%m%d%H%M%S>-${citekey}.org"
+                      "#+title: ${author} (${year})\n")
+           :unarrowed t)
+          ("m" "manuals" plain "%?"
+           :if-new
+           (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n")
+           :unnarrowed t)))
+#+end_src
+
+*** Org-Roam-UI
+
+#+begin_src elisp
+  (use-package org-roam-ui
+    :ensure t :ensure websocket :ensure simple-httpd)
+  (load-library "org-roam-ui")
+  (setq org-roam-ui-open-on-start nil)
+  ;; if org-roam-ui not show citation links, clear db & sync again
+#+end_src
+
+*** ESS
+
+#+begin_src elisp 
+  (use-package ess
+    :ensure t :ensure company)
+  ;; R-mode
+  (add-to-list 'auto-mode-alist '("\\.R\\'" . r-mode))
+  ;; Smart assign
+  (setq ess-smart-S-assign-key ";")  ;if ";" needed, press ";" key twice
+  (require 'ess-site)
+  (ess-toggle-underscore nil) ;leave underscore key alone!x
+  (autoload 'ess-rdired "ess-rdired"  
+    "View *R* objects in a dired-like buffer." t)
+  (global-font-lock-mode 1)                     ; for all buffers
+  (add-hook 'org-mode-hook 'turn-on-font-lock)  ; Org buffers only
+  ;; Auto completion
+  (require 'company)
+  (setq tab-always-indent 'complete)
+  (setq company-idle-delay 0.1)
+  (global-company-mode)
+  (ess-toggle-underscore nil)
+  (with-eval-after-load 'ess
+        (setq ess-use-company t))
+#+end_src
+
+*** Yasnippet
+
+#+begin_src elisp
+  (use-package yasnippet
+    :config
+    (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+    (yas-global-mode 1))
+#+end_src
+
+*** Org-Download
+
+#+begin_src elisp
+  (use-package org-download
+    :config
+    ;; add support to dired
+    (add-hook 'dired-mode-hook 'org-download-enable))
+#+end_src
+
+*** Multiple Cursors
+
+#+begin_src elisp
+  (use-package multiple-cursors
+    :config
+    (global-set-key (kbd "C-c e l") 'mc/edit-lines)
+    (global-set-key (kbd "C-c m n") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-c m p") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-c m a") 'mc/mark-all-like-this))
+#+end_src
+
+*** Transpose Frame
+
+#+begin_src  elisp
+  (use-package transpose-frame)
+#+end_src
+
+*** Ox-Hugo
+
+#+begin_src elisp
+  (use-package ox-hugo
+    :after ox)
+  ;; Populates only the EXPORT_FILE_NAME property in the inserted heading.
+  (with-eval-after-load 'org-capture
+    (defun org-hugo-new-subtree-post-capture-template ()
+      "Returns `org-capture' template string for new Hugo post.
+  See `org-capture-templates' for more information."
+      (let* ((title (read-from-minibuffer "Post Title: ")) ;Prompt to enter the post title
+             (fname (org-hugo-slug title)))
+        (mapconcat #'identity
+                   `(
+                     ,(concat "* TODO " title)
+                     ":PROPERTIES:"
+                     ,(concat ":EXPORT_HUGO_BUNDLE: " fname)
+                     ,(concat ":EXPORT_DATE: " date) ;Enter current date and time
+                     ":EXPORT_FILE_NAME: index"
+                     ":END:"
+                     "%?\n")          ;Place the cursor here finally
+                   "\n")))
+
+    (add-to-list 'org-capture-templates
+                 '("h"                ;`org-capture' binding + h
+                   "Hugo post"
+                   entry
+                   ;; It is assumed that below file is present in `org-directory'
+                   ;; and that it has a "Blog Ideas" heading. It can even be a
+                   ;; symlink pointing to the actual location of all-posts.org!
+                   (file+olp "/mnt/thach/ws/academic-theme/content-org/all-posts.org" "Blog Ideas")
+                   (function org-hugo-new-subtree-post-capture-template))))
+#+end_src
+
+* Org-Mode
+*** Activation
+
+#+begin_src elisp
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c c") 'org-capture)
+#+end_src
+
+*** Identation, Heading & Buffer
+
+#+begin_src elisp
+  ;;Indentation
+    (setq org-startup-indented t
+          org-src-tab-acts-natively t)
+  ;;Collapse all header
+    (setq org-startup-folded t) ;; nil for expansion
+  ;;Show bullets instead of a dash in bullet lists
+    ;(font-lock-add-keywords 'org-mode
+    ;                        '(("^ *\\([-]\\)
+    ;                          (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))
+    ;(font-lock-add-keywords 'org-mo
+    ;                        '(("^ *\\([+]\\)
+    ;                        (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
+  ;;Buffer
+    (setq buffer-read-only nil)
+    (setq inhibit-read-only t)
+    (setq org-hide-emphasis-markers t
+          org-fontify-done-headline t
+          org-hide-leading-stars t
+          ;org-pretty-entities t
+          org-odd-levels-only t)
+    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+#+end_src
+
+*** Structure Templates
+
+#+begin_src elisp
+  ;; Org-tempo
+    (require 'org-tempo)
+    (setq org-src-fontify-natively t
+          org-src-tab-acts-natively t
+          org-confirm-babel-evaluate nil)
+          ;org-edit-src-content-indentation 0)
+  ;; Outline numbering
+    ;(use-package org-num
+    ;  :load-path "lisp/"
+    ;  :after org
+    ;  :hook (org-mode . org-num-mode))
+#+end_src
+
+*** Faces Setup
+***** Keywords
+
+#+begin_src elisp
+  ;; Setup
+  (setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)"))))
+  ;; Cannot set a headline to DONE if children aren’t DONE.
+  (setq-default org-enforce-todo-dependencies t)
+  ;; Foreground & Exporting
+  (setq org-todo-keyword-faces
+        (quote (("TODO" :foreground "red" :weight bold)
+                ("NEXT" :foreground "blue" :weight bold)
+                ("DONE" :foreground "forest green" :weight bold)
+                ("WAITING" :foreground "orange" :weight bold)
+                ("HOLD" :foreground "magenta" :weight bold)
+                ("CANCELLED" :foreground "forest green" :weight bold)
+                ("MEETING" :foreground "forest green" :weight bold)
+                ("PHONE" :foreground "forest green" :weight bold))))
+  ;; I don't wan't the keywords in my exports
+  (setq-default org-export-with-todo-keywords nil)
+  ;; Bullets & Icons
+  (with-eval-after-load 'org-superstar
+      (setq org-superstar-item-bullet-alist
+          '((?* . ?•)
+            (?+ . ?➤)
+            (?- . ?•)))
+      (setq org-superstar-special-todo-items t)
+      (setq org-superstar-remove-leading-stars t)
+      (setq org-superstar-todo-bullet-alist
+            '(("TODO" . ?☐)
+              ("NEXT" . ?✒)
+              ("HOLD" . ?✰)
+              ("WAITING" . ?☕)
+              ("CANCELLED" . ?✘)
+              ("DONE" . ?✔)))
+      (org-superstar-restart))
+  ;; Set Faces
+  (defun butler/set-keyword-faces-org ()
+    (mapc (lambda (pair) (push pair prettify-symbols-alist))
+          '(;; Syntax
+            ("TODO" .     "")
+            ("DONE" .     "")
+            ("WAITING" .  "")
+            ("HOLD" .     "")
+            ("NEXT" .     "")
+            ("CANCELLED" . "")
+            ("#+begin_quote" . "“")
+            ("#+end_quote" . "”")))
+    (prettify-symbols-mode +1)
+    (org-superstar-mode +1)
+    )
+#+end_src
+
+***** Propotional Width
+
+#+begin_src elisp
+  (defun butler/buffer-face-mode-variable ()
+    "Set font to a variable width (proportional) fonts in current buffer"
+    (interactive)
+    (setq buffer-face-mode-face '(:family "Monospace"
+                                  :height 110
+                                  :width normal))
+    (buffer-face-mode))
+#+end_src
+
+***** Variable Pitch
+
+#+begin_src elisp
+  (defun butler/set-general-faces-org ()
+    (butler/buffer-face-mode-variable)
+    (setq ;line-spacing 0.2
+          ;org-pretty-entities t
+          org-startup-indented t
+          org-adapt-indentation nil)
+    (variable-pitch-mode +1)
+    (mapc
+     (lambda (face) ;; Other fonts that require it are set to fixed-pitch.
+       (set-face-attribute face nil :inherit 'fixed-pitch))
+     (list 'org-block
+           'org-table
+           'org-verbatim
+           'org-block-begin-line
+           'org-block-end-line
+           'org-meta-line
+           'org-date
+           'org-drawer
+           'org-property-value
+           'org-special-keyword
+           'org-document-info-keyword))
+    (mapc ;; This sets the fonts to a smaller size
+     (lambda (face)
+       (set-face-attribute face nil :height 0.8))
+     (list 'org-document-info-keyword
+           'org-block-begin-line
+           'org-block-end-line
+           'org-block
+           'org-meta-line
+           'org-drawer
+           'org-property-value
+           'org-special-keyword
+           'org-link
+           'org-footnote
+           )))
+#+end_src
+
+***** Colors & Size of Headlines
+
+#+begin_src elisp
+  (defun butler/set-specific-faces-org ()
+    (set-face-attribute 'org-code nil
+                        :inherit '(shadow fixed-pitch))
+    ;; Without indentation the headlines need to be different to be visible
+    (set-face-attribute 'org-level-1 nil
+                        :height 1.25
+                        :foreground "#BEA4DB")
+    (set-face-attribute 'org-level-2 nil
+                        :height 1.15
+                        :foreground "#A382FF"
+                        :slant 'italic)
+    (set-face-attribute 'org-level-3 nil
+                        :height 1.1
+                        :foreground "#5E65CC"
+                        :slant 'italic)
+    (set-face-attribute 'org-level-4 nil
+                        :height 1.05
+                        :foreground "#ABABFF")
+    (set-face-attribute 'org-level-5 nil
+                        :foreground "#2843FB")
+    (set-face-attribute 'org-date nil
+                        :foreground "#ECBE7B"
+                        :height 0.8)
+    (set-face-attribute 'org-document-title nil
+                        :foreground "DarkOrange3"
+                        :height 1.3)
+    (set-face-attribute 'org-ellipsis nil
+                        :foreground "#4f747a" :underline nil)
+    (set-face-attribute 'variable-pitch nil
+                        :family "Monospace" :height 1.2))
+#+end_src
+
+***** Styles
+
+#+begin_src elisp
+  (defun butler/style-org ()
+    (butler/set-general-faces-org)
+    (butler/set-specific-faces-org)
+    (butler/set-keyword-faces-org)
+    )
+  (add-hook 'org-mode-hook 'butler/style-org)
+#+end_src
+
+*** Babel
+
+#+begin_src elisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((latex . t)
+                               (emacs-lisp . t)
+                               ;(maxima .t)
+                               ;(jupyter . t)
+                               (R . t)))
+  ;(org-babel-jupyter-override-src-block "python")
+  ;(org-babel-jupyter-override-src-block "julia")
+  (add-to-list 'org-structure-template-alist
+               '("j" . "src julia :session *jl*"))
+  (add-to-list 'org-structure-template-alist
+               '("p" . "src python :session *py*"))
+  (add-to-list 'org-structure-template-alist
+               '("m" . "src maxima :session *wxm*"))
+  (add-to-list 'org-structure-template-alist
+               '("r" . "src R :session *r*"))
+#+end_src
+
+*** Latex
+
+#+begin_src elisp
+  ;; Scale latex fragment
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+  ;; dvisvgm setup for Latex
+  (setq org-latex-create-formula-image-program 'dvisvgm)
+  (setq org-preview-latex-default-process 'dvisvgm)
+  ;(setq org-preview-latex-process-alist 'dvisvgm)
+  ;(require ‘latex-preview-pane)
+  ;(latex-preview-pane-enable)
+  ;; images preview
+  (setq org-startup-with-inline-images t)
+  ;; highlight code using mint
+  (setq org-latex-listings 'minted
+        org-latex-packages-alist '(("" "minted"))
+        ;org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
+        )
+  (setq org-latex-pdf-process
+        '("xelatex -interaction nonstopmode -output-directory %o %f"
+          "biber --output-directory %o $(basename %f .tex)"
+          "xelatex -interaction nonstopmode -output-directory %o %f"
+          "xelatex -interaction nonstopmode -output-directory %o %f"))
+  ;; mint style
+  (setq org-latex-minted-options
+        '(;("frame" "lines")
+          ("fontsize" "\\footnotesize")
+          ("mathescape" "")
+          ("samepage" "")
+          ;("xrightmargin" "0.5cm")
+          ("xleftmargin"  "1cm")
+          ("bgcolor" "lightgray")
+          ("linenos")
+          ("firstnumber" "last")
+          ("tabsize" "4")
+          ("autogobble")
+          ("numbersep" "0.5cm")
+          ("breaklines" "true")
+          ))
+#+end_src
+
+*** GTD
+
+#+begin_src elisp
+  ;; Files
+  (setq org-directory "/mnt/thach/ws/emacs/gtd")
+  (setq org-agenda-files '("/mnt/thach/ws/emacs/gtd"))
+  (global-set-key (kbd "<f7>") #'org-capture)
+  (setq org-capture-templates
+        `(("i" "Inbox" entry
+           (file "inbox.org")
+           (file "~/.emacs.d/capture/inbox.org")
+           :empty-lines-before 1)
+         ("m" "Meeting" entry
+          (file "agenda.org")
+          (file "~/.emacs.d/capture/agenda.org")
+          :empty-lines-before 1)))
+  (defun org-capture-inbox ()
+    (interactive)
+    (call-interactively 'org-store-link)
+    (org-capture nil "i"))
+  ;; Use full window for org-capture
+  (add-hook 'org-capture-mode-hook 'delete-other-windows)
+  ;; Key bindings
+  (define-key global-map (kbd "C-c i") 'org-capture-inbox)
+  ;;Refile
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+#+end_src
+
+* Utility Functions
+*** Update Tags for Latex Formulae
+
+#+begin_src elisp
+  (defun butler/update-tag ()
+    (interactive)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((count 1))
+        (while (re-search-forward "\\tag{\\([0-9]+\\)}" nil t)
+          (replace-match (format "%d" count) nil nil nil 1)
+          (setq count (1+ count)))))
+    )
+#+end_src
+
+*** Outline Mode for R
+
+#+begin_src elisp
+  (add-hook 'ess-mode-hook
+      '(lambda ()
+      (outline-minor-mode)
+      (setq outline-regexp "^#.*!")
+      (defun outline-level ()
+      (cond (looking-at "^#.*!") 1)
+      (t 1000)
+      )
+      (defun butler/send-section-to-R ()
+      (interactive ())
+      (let ((beg))
+      (if (outline-on-heading-p)
+      (beginning-of-line)
+      (outline-previous-visible-heading 1))
+      (setq beg (point))
+      (set-mark (point))
+      (outline-next-visible-heading 1)
+      (previous-line 1)
+      (end-of-line 1)
+      (ess-eval-region-or-function-or-paragraph-and-step)
+      )
+      )
+      (local-set-key (kbd "C-c h") 'outline-hide-body)
+      (local-set-key (kbd "C-c s") 'outline-show-all)
+      (local-set-key (kbd "C-c <left>") 'outline-hide-entry)
+      (local-set-key (kbd "C-c <right>") 'outline-show-entry)
+      (local-set-key (kbd "C-c <up>") 'outline-previous-heading)
+      (local-set-key (kbd "C-c <down>") 'outline-next-heading)
+      (local-set-key (kbd "C-c t") 'send-section-to-R)
+      )
+      )
+#+end_src
