@@ -6,3 +6,5 @@
 !capture/*
 !snippets/
 !snippets/**/*
+!wsl.org
+!features.org
