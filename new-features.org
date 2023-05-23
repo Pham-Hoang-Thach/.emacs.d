@@ -1,0 +1,35 @@
+* New Features
+*** Conda
+
+#+begin_src elisp :tangle no
+  (use-package conda
+    :config
+    (setq conda-anaconda-home (expand-file-name "~/miniconda3/"))
+    (setq conda-env-home-directory (expand-file-name "~/miniconda3/"))
+    (setq conda-env-subdirectory "envs"))
+  (unless (getenv "CONDA_DEFAULT_ENV")
+    (conda-env-activate "base"))
+#+end_src
+
+*** Jupyter
+
+#+begin_src elisp :tangle no
+  (use-package jupyter
+    :ensure t :ensure zmq
+    :config
+    (require 'jupyter-julia))
+#+end_src
+
+*** Julia Mode
+
+#+begin_src elisp :tangle no
+(use-package julia-mode)
+#+end_src
+
+*** Maxima
+
+#+begin_src elisp :tangle no
+  (use-package maxima)
+#+end_src
+
+

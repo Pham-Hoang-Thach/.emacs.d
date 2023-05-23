@@ -1,6 +1,6 @@
 *
 !init.el
-!readme.org
+!*.org
 !.gitignore
 !capture/
 !capture/*
