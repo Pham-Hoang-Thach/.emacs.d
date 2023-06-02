@@ -71,12 +71,11 @@
     ;; Corrects (and improves) org-mode's native fontification.
     (doom-themes-org-config))
 #+end_src
-
 *** Doom Modeline
 
 #+begin_src elisp
-  (use-package doom-modeline)
-  (add-hook 'after-init-hook #'doom-modeline-mode)
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
   (add-hook 'inferior-ess-mode-hook
         (lambda ()
           (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
@@ -91,14 +90,21 @@
        (setq org-ellipsis " ▼")
        (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
 #+end_src
+*** All The Icons
+
+#+begin_src elisp
+  (use-package all-the-icons
+    :if (display-graphic-p))
+#+end_src
 
 *** All The Icons Ivy
 
 #+begin_src elisp
   (use-package all-the-icons-ivy
-    :ensure t :ensure all-the-icons
     :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 #+end_src
+
+#+RESULTS:
 
 *** Ivy, Counsel & Swiper
 
@@ -172,7 +178,7 @@
 
 #+begin_src elisp
   (use-package org-noter
-    ;;(setq org-noter-notes-search-path '("/mnt/thach/ws/emacs/noter"))
+    ;;(setq org-noter-notes-search-path '("/mnt/tsys/projects/emacs/noter"))
     :init
     (setq org-noter-always-create-frame nil)
     (setq org-noter-separate-notes-from-heading t)
@@ -221,7 +227,7 @@
     :init
     (setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/thach/ws/emacs/roam")
+    (org-roam-directory "/mnt/tsys/projects/roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -248,9 +254,9 @@
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
   ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/thach/ws/emacs/gtd/bibtex.bib"))
+  (setq bibtex-completion-bibliography '("/mnt/tsys/projects/gtd/bibtex.bib"))
   ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/thach/ws/emacs/roam/")
+  (setq bibtex-completion-notes-path "/mnt/tsys/projects/roam/")
   ;; Open pdf files stored in Zotero
   (setq bibtex-completion-pdf-field "File")
   ;; Customize layout of search results
@@ -320,9 +326,8 @@
   ;; R-mode
   (add-to-list 'auto-mode-alist '("\\.R\\'" . r-mode))
   ;; Smart assign
-  (setq ess-smart-S-assign-key ";")  ;if ";" needed, press ";" key twice
-  (require 'ess-site)
-  (ess-toggle-underscore nil) ;leave underscore key alone!x
+  (eval-after-load "ess-mode" '(define-key ess-mode-map (kbd "C-;") "<-"))
+  (eval-after-load "ess-mode" '(define-key inferior-ess-mode-map (kbd "C-;") "<-"))
   (autoload 'ess-rdired "ess-rdired"  
     "View *R* objects in a dired-like buffer." t)
   (global-font-lock-mode 1)                     ; for all buffers
@@ -332,7 +337,6 @@
   (setq tab-always-indent 'complete)
   (setq company-idle-delay 0.1)
   (global-company-mode)
-  (ess-toggle-underscore nil)
   (with-eval-after-load 'ess
         (setq ess-use-company t))
 #+end_src
@@ -402,7 +406,7 @@
                    ;; It is assumed that below file is present in `org-directory'
                    ;; and that it has a "Blog Ideas" heading. It can even be a
                    ;; symlink pointing to the actual location of all-posts.org!
-                   (file+olp "/mnt/thach/ws/academic-theme/content-org/all-posts.org" "Blog Ideas")
+                   (file+olp "/mnt/tsys/projects/academic-theme/content-org/all-posts.org" "Blog Ideas")
                    (function org-hugo-new-subtree-post-capture-template))))
 #+end_src
 
@@ -676,8 +680,8 @@
 
 #+begin_src elisp
   ;; Files
-  (setq org-directory "/mnt/thach/ws/emacs/gtd")
-  (setq org-agenda-files '("/mnt/thach/ws/emacs/gtd"))
+  (setq org-directory "/mnt/tsys/projects/gtd")
+  (setq org-agenda-files '("/mnt/tsys/projects/gtd"))
   (global-set-key (kbd "<f7>") #'org-capture)
   (setq org-capture-templates
         `(("i" "Inbox" entry
