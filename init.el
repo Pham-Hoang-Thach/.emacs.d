@@ -35,14 +35,14 @@
  ;; If there is more than one, they won't work right.
  '(doc-view-continuous t)
  '(org-agenda-files
-   '("/mnt/tsys/projects/gtd/agenda.org" "/mnt/tsys/projects/gtd/inbox.org" "/mnt/tsys/projects/gtd/minutes.org" "/mnt/tsys/projects/gtd/reading.org"))
+   '("/mnt/tsys/projects/emacs/gtd/agenda.org" "/mnt/tsys/projects/emacs/gtd/inbox.org" "/mnt/tsys/projects/emacs/gtd/minutes.org" "/mnt/tsys/projects/emacs/gtd/reading.org"))
  '(org-capture-templates
    '(("i" "Inbox Entry" entry
-      (file "/mnt/tsys/projects/gtd/inbox.org")
+      (file "/mnt/tsys/projects/emacs/gtd/inbox.org")
       (file "~/.emacs.d/capture/inbox.org")
       :empty-lines-before 1)
      ("m" "Meeting Entry" entry
-      (file "/mnt/tsys/projects/gtd/agenda.org")
+      (file "/mnt/tsys/projects/emacs/gtd/agenda.org")
       (file "~/.emacs.d/capture/agenda.org")
       :empty-lines-before 1)))
  '(org-log-into-drawer t)

@@ -227,7 +227,7 @@
     :init
     (setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/tsys/projects/roam")
+    (org-roam-directory "/mnt/tsys/projects/emacs/roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -254,9 +254,9 @@
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
   ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/tsys/projects/gtd/bibtex.bib"))
+  (setq bibtex-completion-bibliography '("/mnt/tsys/projects/emacs/gtd/bibtex.bib"))
   ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/tsys/projects/roam/")
+  (setq bibtex-completion-notes-path "/mnt/tsys/projects/emacs/roam/")
   ;; Open pdf files stored in Zotero
   (setq bibtex-completion-pdf-field "File")
   ;; Customize layout of search results
@@ -680,8 +680,8 @@
 
 #+begin_src elisp
   ;; Files
-  (setq org-directory "/mnt/tsys/projects/gtd")
-  (setq org-agenda-files '("/mnt/tsys/projects/gtd"))
+  (setq org-directory "/mnt/tsys/projects/emacs/gtd")
+  (setq org-agenda-files '("/mnt/tsys/projects/emacs/gtd"))
   (global-set-key (kbd "<f7>") #'org-capture)
   (setq org-capture-templates
         `(("i" "Inbox" entry
