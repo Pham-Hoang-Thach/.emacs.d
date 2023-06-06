@@ -71,6 +71,15 @@
     ;; Corrects (and improves) org-mode's native fontification.
     (doom-themes-org-config))
 #+end_src
+
+*** Solaire Mode
+
+#+begin_src elisp
+  (use-package solaire-mode
+    :config
+    (solaire-global-mode +1))
+#+end_src
+
 *** Doom Modeline
 
 #+begin_src elisp
@@ -373,7 +382,7 @@
 *** Transpose Frame
 
 #+begin_src  elisp
-  (use-package transpose-frame)
+  ;(use-package transpose-frame)
 #+end_src
 
 *** Ox-Hugo
