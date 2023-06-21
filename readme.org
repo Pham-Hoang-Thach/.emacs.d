@@ -419,6 +419,12 @@
                    (function org-hugo-new-subtree-post-capture-template))))
 #+end_src
 
+*** Command-Log-Mode
+
+#+begin_src elisp
+  (use-package command-log-mode)
+#+end_src
+
 * Org-Mode
 *** Activation
 

@@ -47,7 +47,7 @@
       :empty-lines-before 1)))
  '(org-log-into-drawer t)
  '(package-selected-packages
-   '(solaire-mode font-lock font-lock+ multiple-cursors org-superstar org-download yasnippet maxima julia-mode jupyter conda company ess org-roam-ui org-ref helm-bibtex org-roam-bibtex org-roam org-noter-pdftools org-pdftools org-noter pdf-tools magit which-key org-fragtog olivetti counsel all-the-icons all-the-icons-ivy doom-modeline doom-themes use-package)))
+   '(command-log-mode solaire-mode font-lock font-lock+ multiple-cursors org-superstar org-download yasnippet maxima julia-mode jupyter conda company ess org-roam-ui org-ref helm-bibtex org-roam-bibtex org-roam org-noter-pdftools org-pdftools org-noter pdf-tools magit which-key org-fragtog olivetti counsel all-the-icons all-the-icons-ivy doom-modeline doom-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
