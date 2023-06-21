@@ -187,15 +187,13 @@
 
 #+begin_src elisp
   (use-package org-noter
-    ;;(setq org-noter-notes-search-path '("/mnt/tsys/projects/emacs/noter"))
-    :init
-    (setq org-noter-always-create-frame nil)
-    (setq org-noter-separate-notes-from-heading t)
     :config
     ;; Your org-noter config ........
     (require 'org-noter-pdftools))
+
   (use-package org-pdftools
     :hook (org-mode . org-pdftools-setup-link))
+
   (use-package org-noter-pdftools
     :after org-noter
     :config
@@ -207,8 +205,9 @@
                                                      (not org-noter-insert-note-no-questions)
                                                    org-noter-insert-note-no-questions))
              (org-pdftools-use-isearch-link t)
-             (org-pdftools-use-freestyle-annot t))
+             (org-pdftools-use-freepointer-annot t))
          (org-noter-insert-note (org-noter--get-precise-info)))))
+
     ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
     (defun org-noter-set-start-location (&optional arg)
       "When opening a session with this document, go to the current location.
