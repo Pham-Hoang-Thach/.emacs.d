@@ -555,7 +555,7 @@
            'org-drawer
            'org-property-value
            'org-special-keyword
-           'org-link
+           ;;'org-link
            'org-footnote
            )))
 #+end_src
