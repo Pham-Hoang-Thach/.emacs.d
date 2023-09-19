@@ -1,0 +1,32 @@
+# -*- mode: snippet -*-
+# name: beamer
+# key: <b
+# --
+#+latex_compiler: xelatex
+#+options: timestamp:t title:t toc:nil todo:nil |:
+#+OPTIONS:   H:2 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:https://orgmode.org/org-info.js
+#+title: ${1:title}
+#+date: \today
+#+author: ${2:author}
+#+email: ${3:email}
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs 29.1 (Org mode 9.6.6)
+#+cite_export:
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+BEAMER_THEME: Madrid
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Outline}\tableofcontents[currentsection]\end{frame}}
+#+BEAMER_HEADER: \subtitle{${4:subtitle}}
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+#+begin_export latex
+\begin{frame}\frametitle{Outline}\tableofcontents\end{frame}
+#+end_export
+
+** Key Concepts & Skills
+$0
