@@ -401,6 +401,19 @@
   (use-package nov)
 #+end_src
 
+*** Company-C-Headers
+
+#+begin_src elisp
+  (use-package company-c-headers)
+  (with-eval-after-load 'company
+    (add-hook 'c++-mode-hook 'company)
+    (add-hook 'c-mode-hook 'company))
+  (add-to-list 'company-backends 'company-c-headers)
+  ;;gcc -xc++ -E -v -
+  (add-to-list 'company-c-headers-path-system "/usr/lib/gcc/x86_64-linux-gnu/11/include")
+  (add-to-list 'company-c-headers-path-system "/usr/include/c++/11")
+#+end_src
+
 * Org-Mode
 *** Activation
 
