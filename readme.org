@@ -652,16 +652,19 @@
    'org-babel-load-languages '((latex . t)
                                (emacs-lisp . t)
                                ;(maxima .t)
-                               ;(jupyter . t)
+                               (python . t)
+                               (latex . t)
+                               (C . t)
+                               (jupyter . t)
                                (R . t)))
-  ;(org-babel-jupyter-override-src-block "python")
+  (org-babel-jupyter-override-src-block "python")
   ;(org-babel-jupyter-override-src-block "julia")
-  (add-to-list 'org-structure-template-alist
-               '("j" . "src julia :session *jl*"))
+  ;(add-to-list 'org-structure-template-alist
+  ;             '("j" . "src julia :session *jl*"))
   (add-to-list 'org-structure-template-alist
                '("p" . "src python :session *py*"))
-  (add-to-list 'org-structure-template-alist
-               '("m" . "src maxima :session *wxm*"))
+  ;(add-to-list 'org-structure-template-alist
+  ;             '("m" . "src maxima :session *wxm*"))
   (add-to-list 'org-structure-template-alist
                '("r" . "src R :session *r*"))
 #+end_src
