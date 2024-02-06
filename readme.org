@@ -233,7 +233,7 @@
     :init
     (setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/tsys/projects/emacs/roam")
+    (org-roam-directory "/mnt/tsys/dg/roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -260,9 +260,9 @@
     (use-package org-roam-bibtex
       :ensure t :ensure helm-bibtex :ensure org-ref)
     ;; Set up bibliography
-    (setq bibtex-completion-bibliography '("/mnt/tsys/projects/emacs/gtd/bibtex.bib"))
+    (setq bibtex-completion-bibliography '("/mnt/tsys/dg/roam/bibtex.bib"))
     ;; Set up notes
-    (setq bibtex-completion-notes-path "/mnt/tsys/projects/emacs/roam/")
+    (setq bibtex-completion-notes-path "/mnt/tsys/dg/roam/")
     ;; Open pdf files stored in Zotero
     (setq bibtex-completion-pdf-field "File")
     ;; Customize layout of search results
@@ -363,7 +363,7 @@
     :config
     ;; add support to dired
     (add-hook 'dired-mode-hook 'org-download-enable))
-  (setq-default org-download-image-dir "/mnt/tsys/org-download")
+  (setq-default org-download-image-dir "/mnt/tsys/dg/img")
 #+end_src
 
 *** Multiple Cursors
@@ -412,6 +412,15 @@
   ;;gcc -xc++ -E -v -
   (add-to-list 'company-c-headers-path-system "/usr/lib/gcc/x86_64-linux-gnu/12/include")
   (add-to-list 'company-c-headers-path-system "/usr/include/c++/12")
+#+end_src
+
+*** Clang-Format
+
+#+begin_src elisp
+  (use-package clang-format)
+  (load "/usr/share/emacs/site-lisp/clang-format-14/clang-format.el")
+  ;in the project's root
+  ;clang-format -style=llvm -dump-config > .clang-format
 #+end_src
 
 * Org-Mode
@@ -685,8 +694,8 @@
 
 #+begin_src elisp
     ;; Files
-    (setq org-directory "/mnt/tsys/projects/emacs/gtd")
-    (setq org-agenda-files '("/mnt/tsys/projects/emacs/gtd"))
+    (setq org-directory "/mnt/tsys/dg/gtd")
+    (setq org-agenda-files '("/mnt/tsys/dg/gtd"))
     (global-set-key (kbd "<f7>") #'org-capture)
     (setq org-capture-templates
           `(("i" "Inbox" entry
