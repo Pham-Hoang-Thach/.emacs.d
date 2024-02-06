@@ -423,6 +423,18 @@
   ;clang-format -style=llvm -dump-config > .clang-format
 #+end_src
 
+*** Conda
+
+#+begin_src elisp
+  (use-package conda
+    :config
+    (setq conda-anaconda-home (expand-file-name "~/miniconda3/"))
+    (setq conda-env-home-directory (expand-file-name "~/miniconda3/"))
+    (setq conda-env-subdirectory "envs"))
+  (unless (getenv "CONDA_DEFAULT_ENV")
+    (conda-env-activate "base"))
+#+end_src
+
 * Org-Mode
 *** Activation
 
