@@ -4,57 +4,6 @@
 #+language: en
 #+property: results silent
 
-* General Setup
-*** UTF-8 Encoding
-
-#+begin_src elisp
-  (setq locale-coding-system 'utf-8)
-  (prefer-coding-system 'utf-8)
-  (set-clipboard-coding-system 'utf-8)
-  (set-default-coding-systems 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (set-selection-coding-system 'utf-8)
-  (setq default-buffer-file-coding-system 'utf-8)
-  (set-language-environment "UTF-8")
-  (setq tab-width 4)
-#+end_src
-
-*** Stop Emacs Littering
-
-#+begin_src elisp
-  ;; Avoid #file.org# to appear
-  (auto-save-visited-mode)
-  (setq create-lockfiles nil)
-  ;; Avoid filename.ext~ to appear
-  (setq make-backup-files nil)
-#+end_src
-
-*** Additional Aesthetic
-
-#+begin_src elisp
-  (show-paren-mode 1)
-  (setq inhibit-startup-screen t)
-  (setq inhibit-startup-echo-area-message t)
-  (setq inhibit-startup-message t)
-  (setq initial-scratch-message nil)
-  (setq initial-major-mode 'org-mode)
-  (setq-default indent-tabs-mode nil)
-  (setq pop-up-windows nil)
-  (tool-bar-mode 0) 
-  (tooltip-mode  1)
-  (scroll-bar-mode 0)
-  (menu-bar-mode 0)
-  (global-visual-line-mode 1)
-  ;; Line cursor and no blink
-  (set-default 'cursor-type  '(bar . 1))
-  (blink-cursor-mode 0)
-  ;; Line spacing, can be 0 for code and 1 or 2 for text
-  (setq-default line-spacing 2)
-  ;; Underline line at descent position, not baseline position
-  (setq x-underline-at-descent-line t)
-#+end_src
-
 * Org-Mode
 *** Activation
 
@@ -267,7 +216,6 @@
                                (emacs-lisp . t)
                                ;(maxima .t)
                                (python . t)
-                               (latex . t)
                                (C . t)
                                (jupyter . t)
                                (R . t)))
@@ -303,14 +251,19 @@
         org-latex-packages-alist '(("outputdir=./build" "minted" nil))
         ;org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
         )
-  (setq org-latex-pdf-process '("mkdir -p build"
-                                "latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o/build %f"
-                                "mv %o/build/%b.pdf %O"))
+  (setq org-latex-pdf-process
+      '("xelatex -interaction nonstopmode -output-directory %o %f"
+	"bibtex %b"
+	"xelatex -interaction nonstopmode -output-directory %o %f"
+	"xelatex -interaction nonstopmode -output-directory %o %f"))
+  ;(setq org-latex-pdf-process '("mkdir -p build"
+  ;                             "latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o/build %f"
+  ;                              "mv %o/build/%b.pdf %O"))
   ;(setq org-latex-pdf-process
-        ;'("xelatex -interaction nonstopmode -output-directory %o %f"
-          ;"biber --output-directory %o $(basename %f .tex)"
-          ;"xelatex -interaction nonstopmode -output-directory %o %f"
-          ;"xelatex -interaction nonstopmode -output-directory %o %f"))
+  ;      '("xelatex -interaction nonstopmode -output-directory %o %f"
+  ;        "biber --output-directory %o $(basename %f .tex)"
+  ;        "xelatex -interaction nonstopmode -output-directory %o %f"
+  ;        "xelatex -interaction nonstopmode -output-directory %o %f"))
   ;; mint style
   (setq org-latex-minted-options
         '(;("frame" "lines")
@@ -329,10 +282,6 @@
           ))
   (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
 #+end_src
-
-#+RESULTS:
-| AUTO              | babel  | t   | (pdflatex xelatex) |
-| outputdir=./build | minted | nil |                    |
 
 *** GTD
 
@@ -363,6 +312,57 @@
     (setq org-refile-use-outline-path 'file)
     (setq org-outline-path-complete-in-steps nil)
     (setq org-refile-allow-creating-parent-nodes 'confirm)
+#+end_src
+
+* General Setup
+*** UTF-8 Encoding
+
+#+begin_src elisp
+  (setq locale-coding-system 'utf-8)
+  (prefer-coding-system 'utf-8)
+  (set-clipboard-coding-system 'utf-8)
+  (set-default-coding-systems 'utf-8)
+  (set-terminal-coding-system 'utf-8)
+  (set-keyboard-coding-system 'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (setq default-buffer-file-coding-system 'utf-8)
+  (set-language-environment "UTF-8")
+  (setq tab-width 4)
+#+end_src
+
+*** Stop Emacs Littering
+
+#+begin_src elisp
+  ;; Avoid #file.org# to appear
+  (auto-save-visited-mode)
+  (setq create-lockfiles nil)
+  ;; Avoid filename.ext~ to appear
+  (setq make-backup-files nil)
+#+end_src
+
+*** Additional Aesthetic
+
+#+begin_src elisp
+  (show-paren-mode 1)
+  (setq inhibit-startup-screen t)
+  (setq inhibit-startup-echo-area-message t)
+  (setq inhibit-startup-message t)
+  (setq initial-scratch-message nil)
+  (setq initial-major-mode 'org-mode)
+  (setq-default indent-tabs-mode nil)
+  (setq pop-up-windows nil)
+  (tool-bar-mode 0) 
+  (tooltip-mode  1)
+  (scroll-bar-mode 0)
+  (menu-bar-mode 0)
+  (global-visual-line-mode 1)
+  ;; Line cursor and no blink
+  (set-default 'cursor-type  '(bar . 1))
+  (blink-cursor-mode 0)
+  ;; Line spacing, can be 0 for code and 1 or 2 for text
+  (setq-default line-spacing 2)
+  ;; Underline line at descent position, not baseline position
+  (setq x-underline-at-descent-line t)
 #+end_src
 
 * Utility Functions

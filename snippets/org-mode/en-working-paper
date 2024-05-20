@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: Working Paper - EN
+# key: <ew
+# --
+
+#+options: TeX:t LaTeX:t toc:nil email:t
+#+latex_header: \usepackage[bottom=2.5cm, right=1.5cm, left=1.5cm, top=1.5cm]{geometry}
+#+author: ${1:author}
+#+emai: ${2:email}
+#+title: ${3:title}
+#+date: \today
+
+[[bibliography: /mnt/tsys/dg/roam/bibtex.bib]]
+[[bibliographystyle: unsrt]]
