@@ -604,6 +604,10 @@
   ;; Display node types
   (setq org-roam-node-display-template
         (concat "${type:15} ${title:30} " (propertize "${tags}" 'face 'org-tag)))
+  ;; Exlude org-noter-insert notes from being cached as nodes
+  (setq org-roam-db-node-include-function
+            (lambda ()
+              (not (cdr  (assoc "NOTER_PAGE" (org-entry-properties))))))
 #+end_src
 
 *** Org Ref, Helm Bibtex & ORB
