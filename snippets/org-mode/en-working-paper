@@ -5,10 +5,13 @@
 
 #+options: TeX:t LaTeX:t toc:nil email:t
 #+latex_header: \usepackage[bottom=2.5cm, right=1.5cm, left=1.5cm, top=1.5cm]{geometry}
+#+latex_header: \usepackage[round]{natbib}
 #+author: ${1:author}
-#+emai: ${2:email}
+#+email: ${2:emal}
 #+title: ${3:title}
 #+date: \today
 
-[[bibliography: /mnt/tsys/dg/roam/bibtex.bib]]
-[[bibliographystyle: unsrt]]
+bibliography:/mnt/tsys/dg/roam/bibtex.bib
+bibliographystyle:apalike
+
+$0
