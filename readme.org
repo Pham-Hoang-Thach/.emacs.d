@@ -612,9 +612,9 @@
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
   ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/tsys/dg/roam/bibtex.bib"))
+  (setq bibtex-completion-bibliography '("/mnt/tsys/repos/roam/bibtex.bib"))
   ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/tsys/dg/roam/")
+  (setq bibtex-completion-notes-path "/mnt/tsys/repos/roam/")
   ;; Open pdf files stored in Zotero
   (setq bibtex-completion-pdf-field "File")
   ;; Customize layout of search results
