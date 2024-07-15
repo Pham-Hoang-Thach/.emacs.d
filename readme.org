@@ -211,75 +211,64 @@
 *** Babel
 
 #+begin_src elisp
-  (org-babel-do-load-languages
-   'org-babel-load-languages '((latex . t)
-                               (emacs-lisp . t)
-                               ;(maxima .t)
-                               (python . t)
-                               (C . t)
-                               (jupyter . t)
-                               (R . t)))
-  (org-babel-jupyter-override-src-block "python")
-  ;(org-babel-jupyter-override-src-block "julia")
-  ;(add-to-list 'org-structure-template-alist
-  ;             '("j" . "src julia :session *jl*"))
-  (add-to-list 'org-structure-template-alist
-               '("p" . "src python :session *py*"))
-  ;(add-to-list 'org-structure-template-alist
-  ;             '("m" . "src maxima :session *wxm*"))
-  (add-to-list 'org-structure-template-alist
-               '("r" . "src R :session *r*"))
+    (org-babel-do-load-languages
+     'org-babel-load-languages '((latex . t)
+                                 (emacs-lisp . t)
+                                 ;(maxima .t)
+                                 (python . t)
+                                 (C . t)
+                                 (R . t)
+                                 (jupyter . t)))
+    ;(org-babel-jupyter-override-src-block "python")
+    ;(org-babel-jupyter-override-src-block "julia")
+    ;(add-to-list 'org-structure-template-alist
+    ;             '("j" . "src julia :session *jl*"))
+    (add-to-list 'org-structure-template-alist
+                 '("p" . "src jupyter-python :session *py*"))
+    ;(add-to-list 'org-structure-template-alist
+    ;             '("m" . "src maxima :session *wxm*"))
+    (add-to-list 'org-structure-template-alist
+                 '("r" . "src R :session *r*"))
 #+end_src
 
 *** Latex
 
 #+begin_src elisp
-  ;; Scale latex fragment
+   ;; Scale latex fragment
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
-  ;; dvisvgm setup for Latex
+   ;; dvisvgm setup for Latex
   (setq org-latex-create-formula-image-program 'dvisvgm)
   (setq org-preview-latex-default-process 'dvisvgm)
-  ;(setq org-preview-latex-process-alist 'dvisvgm)
-  ;(require ‘latex-preview-pane)
-  ;(latex-preview-pane-enable)
-  ;; images preview
+   ;(setq org-preview-latex-process-alist 'dvisvgm)
+   ;(require ‘latex-preview-pane)
+   ;(latex-preview-pane-enable)
+   ;; images preview
   (setq org-startup-with-inline-images t)
-  ;; highlight code using mint
-  (setq org-latex-listings 'minted
-        org-latex-packages-alist '(("" "minted"))
-        org-latex-compiler "xelatex"
-        org-latex-packages-alist '(("outputdir=./build" "minted" nil))
-        ;org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
-        )
+   ;; highlight code using mint
+  (setq org-latex-compiler "xelatex")
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-listings 'minted)
   (setq org-latex-pdf-process
-      '("xelatex -interaction nonstopmode -output-directory %o %f"
-	"bibtex %b"
-	"xelatex -interaction nonstopmode -output-directory %o %f"
-	"xelatex -interaction nonstopmode -output-directory %o %f"))
-  ;(setq org-latex-pdf-process '("mkdir -p build"
-  ;                             "latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o/build %f"
-  ;                              "mv %o/build/%b.pdf %O"))
-  ;(setq org-latex-pdf-process
-  ;      '("xelatex -interaction nonstopmode -output-directory %o %f"
-  ;        "biber --output-directory %o $(basename %f .tex)"
-  ;        "xelatex -interaction nonstopmode -output-directory %o %f"
-  ;        "xelatex -interaction nonstopmode -output-directory %o %f"))
-  ;; mint style
-  (setq org-latex-minted-options
-        '(;("frame" "lines")
-          ("fontsize" "\\footnotesize")
-          ("mathescape" "")
-          ("samepage" "")
-          ;("xrightmargin" "0.5cm")
-          ("xleftmargin"  "1cm")
-          ("bgcolor" "lightgray")
-          ("linenos")
-          ("firstnumber" "last")
-          ("tabsize" "4")
-          ("autogobble")
-          ("numbersep" "0.5cm")
-          ("breaklines" "true")
-          ))
+        '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "bibtex %b"
+          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+   ;; mint style
+   (setq org-latex-minted-options
+         '(;("frame" "lines")
+           ("fontsize" "\\footnotesize")
+           ("mathescape" "")
+           ("samepage" "")
+           ;("xrightmargin" "0.5cm")
+           ("xleftmargin"  "1cm")
+           ("bgcolor" "lightgray")
+           ("linenos")
+           ("firstnumber" "last")
+           ("tabsize" "4")
+           ("autogobble")
+           ("numbersep" "0.5cm")
+           ("breaklines" "true")
+           ))
   (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
 #+end_src
 
