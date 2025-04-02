@@ -3,14 +3,15 @@
 # key: <b
 # --
 #+latex_compiler: xelatex
-#+options: timestamp:t title:t toc:nil todo:nil |:
-#+OPTIONS:   H:2 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:https://orgmode.org/org-info.js
-#+title: ${1:title}
+#+options: email:t etimestamp:t title:t toc:nil todo:nil |:
+#+options: H:2 num:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+options: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:t ltoc:t mouse:underline buttons:0 path:https://orgmode.org/org-info.js
+#+exclude_tags: noexport
+#+title: Financial Investment & Analysis
 #+date: \today
-#+author: ${2:author}
-#+email: ${3:email}
+#+author: Thach H. Pham (PhD)
+#+email: thach.ph@ou.edu.vn
 #+language: en
 #+select_tags: export
 #+exclude_tags: noexport
@@ -18,9 +19,12 @@
 #+cite_export:
 #+startup: beamer
 #+LaTeX_CLASS: beamer
-#+BEAMER_THEME: Madrid
-#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Outline}\tableofcontents[currentsection]\end{frame}}
-#+BEAMER_HEADER: \subtitle{${4:subtitle}}
+#+latex_header: \usetheme{Madrid}
+#+latex_header: \setbeamertemplate{frametitle continuation}[from second][(contd.)]
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Topic}\tableofcontents[currentsection]\end{frame}}
+#+LATEX_HEADER: \pretocmd{\tableofcontents}{\thispagestyle{empty}}{}{}
+#+LATEX_HEADER: \addtocounter{framenumber}{-1}
+#+BEAMER_HEADER: \subtitle{Chapter 5: Multiple ratio valuation methods}
 #+LaTeX_CLASS_OPTIONS: [bigger]
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 

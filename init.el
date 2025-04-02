@@ -17,9 +17,9 @@
 (setq use-package-always-ensure t)
 ;; start every frame maximized
 ;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
-(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
-    (toggle-frame-maximized)
-  (toggle-frame-fullscreen))
+;;(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
+;;    (toggle-frame-maximized)
+;;  (toggle-frame-fullscreen))
 ;; Battery display
 (unless (equal "Battery status not available"
                (battery))
@@ -34,20 +34,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(doc-view-continuous t)
- '(org-agenda-files
-   '("/mnt/tsys/projects/emacs/gtd/agenda.org" "/mnt/tsys/projects/emacs/gtd/inbox.org" "/mnt/tsys/projects/emacs/gtd/minutes.org" "/mnt/tsys/projects/emacs/gtd/reading.org"))
- '(org-capture-templates
-   '(("i" "Inbox Entry" entry
-      (file "/mnt/tsys/projects/emacs/gtd/inbox.org")
-      (file "~/.emacs.d/capture/inbox.org")
-      :empty-lines-before 1)
-     ("m" "Meeting Entry" entry
-      (file "/mnt/tsys/projects/emacs/gtd/agenda.org")
-      (file "~/.emacs.d/capture/agenda.org")
-      :empty-lines-before 1)))
  '(org-log-into-drawer t)
  '(package-selected-packages
-   '(company-c-headers auto-complete transpose-frame nov-xwidget nov djvu command-log-mode solaire-mode font-lock font-lock+ multiple-cursors org-superstar org-download yasnippet maxima julia-mode jupyter conda company ess org-roam-ui org-ref helm-bibtex org-roam-bibtex org-roam org-noter-pdftools org-pdftools org-noter pdf-tools magit which-key org-fragtog olivetti counsel all-the-icons all-the-icons-ivy doom-modeline doom-themes use-package)))
+   '(ellama clang-format+ clang-format company-c-headers auto-complete transpose-frame nov-xwidget nov djvu command-log-mode solaire-mode font-lock font-lock+ multiple-cursors org-superstar org-download yasnippet maxima julia-mode jupyter conda company ess org-roam-ui org-ref helm-bibtex org-roam-bibtex org-roam org-noter-pdftools org-pdftools org-noter pdf-tools magit which-key org-fragtog olivetti counsel all-the-icons all-the-icons-ivy doom-modeline doom-themes use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

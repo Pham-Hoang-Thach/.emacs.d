@@ -1,6 +1,6 @@
 #+title: Emacs Configurations
 #+author: Thach H. Pham
-#+description: Emacs Configurations with Debian (WSL2)
+#+description: Emacs Configurations with WSL2
 #+language: en
 #+property: results silent
 
@@ -18,6 +18,7 @@
   (setq default-buffer-file-coding-system 'utf-8)
   (set-language-environment "UTF-8")
   (setq tab-width 4)
+  (set-face-attribute 'default nil :height 160)
 #+end_src
 
 *** Stop Emacs Littering
@@ -50,9 +51,317 @@
   (set-default 'cursor-type  '(bar . 1))
   (blink-cursor-mode 0)
   ;; Line spacing, can be 0 for code and 1 or 2 for text
-  (setq-default line-spacing 2)
+  ;; (setq-default line-spacing 0.5)
   ;; Underline line at descent position, not baseline position
   (setq x-underline-at-descent-line t)
+  (setq user-full-name "Thach H. Pham")
+#+end_src
+
+*** XDG-Open
+
+#+begin_src elisp
+  (setq browse-url-browser-function 'browse-url-generic
+        browse-url-generic-program "xdg-open")
+  (setq browse-url-generic-program "/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe")
+#+end_src
+
+* Org-Mode
+*** Activation
+
+#+begin_src elisp
+  (global-set-key (kbd "C-c l") 'org-store-link)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c c") 'org-capture)
+#+end_src
+
+*** Identation, Heading & Buffer
+
+#+begin_src elisp
+  ;;Indentation
+    (setq org-startup-indented t
+          org-src-tab-acts-natively t)
+  ;;Collapse all header
+    (setq org-startup-folded t) ;; nil for expansion
+  ;;Show bullets instead of a dash in bullet lists
+    ;(font-lock-add-keywords 'org-mode
+    ;                        '(("^ *\\([-]\\)
+    ;                          (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))
+    ;(font-lock-add-keywords 'org-mo
+    ;                        '(("^ *\\([+]\\)
+    ;                        (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
+  ;;Buffer
+    (setq buffer-read-only nil)
+    (setq inhibit-read-only t)
+    (setq org-hide-emphasis-markers t
+          org-fontify-done-headline t
+          org-hide-leading-stars t
+          ;org-pretty-entities t
+          org-odd-levels-only t)
+    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+#+end_src
+
+*** Structure Templates
+
+#+begin_src elisp
+  ;; Org-tempo
+    (require 'org-tempo)
+    (setq org-src-fontify-natively t
+          org-src-tab-acts-natively t
+          org-confirm-babel-evaluate nil)
+          ;org-edit-src-content-indentation 0)
+  ;; Outline numbering
+    ;(use-package org-num
+    ;  :load-path "lisp/"
+    ;  :after org
+    ;  :hook (org-mode . org-num-mode))
+#+end_src
+
+*** Faces Setup
+***** Keywords
+
+#+begin_src elisp
+  ;; Setup
+  (setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)"))))
+  ;; Cannot set a headline to DONE if children aren’t DONE.
+  (setq-default org-enforce-todo-dependencies t)
+  ;; Foreground & Exporting
+  (setq org-todo-keyword-faces
+        (quote (("TODO" :foreground "red" :weight bold)
+                ("NEXT" :foreground "blue" :weight bold)
+                ("DONE" :foreground "forest green" :weight bold)
+                ("WAITING" :foreground "orange" :weight bold)
+                ("HOLD" :foreground "magenta" :weight bold)
+                ("CANCELLED" :foreground "forest green" :weight bold)
+                ("MEETING" :foreground "forest green" :weight bold)
+                ("PHONE" :foreground "forest green" :weight bold))))
+  ;; I don't wan't the keywords in my exports
+  (setq-default org-export-with-todo-keywords nil)
+  ;; Bullets & Icons
+  (with-eval-after-load 'org-superstar
+      (setq org-superstar-item-bullet-alist
+          '((?* . ?•)
+            (?+ . ?➤)
+            (?- . ?•)))
+      (setq org-superstar-special-todo-items t)
+      (setq org-superstar-remove-leading-stars t)
+      (setq org-superstar-todo-bullet-alist
+            '(("TODO" . ?☐)
+              ("NEXT" . ?✒)
+              ("HOLD" . ?✰)
+              ("WAITING" . ?☕)
+              ("CANCELLED" . ?✘)
+              ("DONE" . ?✔)))
+      (org-superstar-restart))
+  ;; Set Faces
+  (defun butler/set-keyword-faces-org ()
+    (mapc (lambda (pair) (push pair prettify-symbols-alist))
+          '(;; Syntax
+            ("TODO" .     "")
+            ("DONE" .     "")
+            ("WAITING" .  "")
+            ("HOLD" .     "")
+            ("NEXT" .     "")
+            ("CANCELLED" . "")
+            ("#+begin_quote" . "“")
+            ("#+end_quote" . "”")))
+    (prettify-symbols-mode +1)
+    (org-superstar-mode +1)
+    )
+#+end_src
+
+***** Propotional Width
+
+#+begin_src elisp
+  (defun butler/buffer-face-mode-variable ()
+    "Set font to a variable width (proportional) font in the current buffer."
+    (interactive)
+    (setq buffer-face-mode-face '(:family "Monospace"
+                                          :height 200
+                                          :width normal))
+    (buffer-face-mode 1))  ; Activates the buffer-face-mode
+#+end_src
+
+***** Variable Pitch
+
+#+begin_src elisp
+  (defun butler/set-general-faces-org ()
+    (butler/buffer-face-mode-variable)
+    (setq line-spacing 0.5
+          ;org-pretty-entities t
+          org-startup-indented t
+          org-adapt-indentation nil)
+    (variable-pitch-mode +1)
+    (mapc
+     (lambda (face) ;; Other fonts that require it are set to fixed-pitch.
+       (set-face-attribute face nil :inherit 'fixed-pitch))
+     (list 'org-block
+           'org-table
+           'org-verbatim
+           'org-block-begin-line
+           'org-block-end-line
+           'org-meta-line
+           'org-date
+           'org-drawer
+           'org-property-value
+           'org-special-keyword
+           'org-document-info-keyword))
+    (mapc ;; This sets the fonts to a smaller size
+     (lambda (face)
+       (set-face-attribute face nil :height 1.0))
+     (list 'org-document-info-keyword
+           'org-block-begin-line
+           'org-block-end-line
+           'org-block
+           'org-meta-line
+           'org-drawer
+           'org-property-value
+           'org-special-keyword
+           ;;'org-link
+           'org-footnote
+           )))
+#+end_src
+
+***** Colors & Size of Headlines
+
+#+begin_src elisp
+  (defun butler/set-specific-faces-org ()
+    (set-face-attribute 'org-code nil
+                        :inherit '(shadow fixed-pitch))
+    ;; Without indentation the headlines need to be different to be visible
+    (set-face-attribute 'org-level-1 nil
+                        :height 1.5
+                        :foreground "#BEA4DB")
+    (set-face-attribute 'org-level-2 nil
+                        :height 1.3
+                        :foreground "#A382FF"
+                        :slant 'italic)
+    (set-face-attribute 'org-level-3 nil
+                        :height 1.2
+                        :foreground "#5E65CC"
+                        :slant 'italic)
+    (set-face-attribute 'org-level-4 nil
+                        :height 1.1
+                        :foreground "#ABABFF")
+    (set-face-attribute 'org-level-5 nil
+                        :foreground "#2843FB")
+    (set-face-attribute 'org-date nil
+                        :foreground "#ECBE7B"
+                        :height 0.8)
+    (set-face-attribute 'org-document-title nil
+                        :foreground "DarkOrange3"
+                        :height 1.3)
+    (set-face-attribute 'org-ellipsis nil
+                        :foreground "#4f747a" :underline nil)
+    (set-face-attribute 'variable-pitch nil
+                        :family "Monospace" :height 1.2))
+#+end_src
+
+***** Styles
+
+#+begin_src elisp
+  (defun butler/style-org ()
+    (butler/set-general-faces-org)
+    (butler/set-specific-faces-org)
+    (butler/set-keyword-faces-org)
+    )
+  (add-hook 'org-mode-hook 'butler/style-org)
+#+end_src
+
+*** Babel
+
+#+begin_src elisp
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((latex . t)
+                               (emacs-lisp . t)
+                               ;(maxima .t)
+                               (python . t)
+                               (C . t)
+                               (R . t)
+                               (jupyter . t)))
+  ;(org-babel-jupyter-override-src-block "python")
+  ;(org-babel-jupyter-override-src-block "julia")
+  ;(add-to-list 'org-structure-template-alist
+  ;             '("j" . "src julia :session *jl*"))
+  (add-to-list 'org-structure-template-alist
+               '("p" . "src jupyter-python :session *py*"))
+  ;(add-to-list 'org-structure-template-alist
+  ;             '("m" . "src maxima :session *wxm*"))
+  (add-to-list 'org-structure-template-alist
+               '("r" . "src R :session *r*"))
+#+end_src
+
+*** Latex
+
+#+begin_src elisp
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.9))
+   ;; dvisvgm setup for Latex
+  (setq org-latex-create-formula-image-program 'dvisvgm)
+  (setq org-preview-latex-default-process 'dvisvgm)
+   ;(setq org-preview-latex-process-alist 'dvisvgm)
+   ;(require ‘latex-preview-pane)
+   ;(latex-preview-pane-enable)
+   ;; images preview
+  (setq org-startup-with-inline-images t)
+   ;; highlight code using mint
+  (setq org-latex-compiler "xelatex")
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
+  (setq org-latex-listings 'minted)
+  (setq org-latex-pdf-process
+        '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "bibtex %b"
+          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+   ;; mint style
+   (setq org-latex-minted-options
+         '(;("frame" "lines")
+           ("fontsize" "\\footnotesize")
+           ("mathescape" "")
+           ("samepage" "")
+           ;("xrightmargin" "0.5cm")
+           ("xleftmargin"  "1cm")
+           ("bgcolor" "lightgray")
+           ("linenos")
+           ("firstnumber" "last")
+           ("tabsize" "4")
+           ("autogobble")
+           ("numbersep" "0.5cm")
+           ("breaklines" "true")
+           ))
+  (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
+#+end_src
+
+*** GTD
+
+#+begin_src elisp
+  ;; Files
+  (setq org-directory "/mnt/tsys/gtd")
+  (setq org-agenda-files (list org-directory))
+  (global-set-key (kbd "<f7>") #'org-capture)
+  (setq org-capture-templates
+        `(("i" "Inbox" entry
+           (file "inbox.org")
+           (file "~/.emacs.d/capture/inbox.org")
+           :empty-lines-before 1)
+         ("m" "Meeting" entry
+          (file "agenda.org")
+          (file "~/.emacs.d/capture/agenda.org")
+          :empty-lines-before 1)))
+  (defun org-capture-inbox ()
+    (interactive)
+    (call-interactively 'org-store-link)
+    (org-capture nil "i"))
+  ;; Use full window for org-capture
+  (add-hook 'org-capture-mode-hook 'delete-other-windows)
+  ;; Key bindings
+  (define-key global-map (kbd "C-c i") 'org-capture-inbox)
+  ;;Refile
+  (setq org-refile-targets '((org-agenda-files :level . 1)))
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
 #+end_src
 
 * Packages
@@ -105,6 +414,7 @@
 #+begin_src elisp
   (use-package all-the-icons
     :if (display-graphic-p))
+  ; install all-the-icons and nerd fonts
 #+end_src
 
 *** All The Icons Ivy
@@ -230,15 +540,16 @@
 
 #+begin_src elisp
   (use-package org-roam
-    :init
-    (setq org-roam-v2-ack t)
+    ;:init
+    ;(setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/tsys/projects/emacs/roam")
+    (org-roam-directory "/mnt/tsys/repos/roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
     :config
-    (org-roam-setup))
+    ;(org-roam-setup)
+    (org-roam-db-autosync-mode))
   (require 'org-roam)
   ;; Create the property "type"
     (cl-defmethod org-roam-node-type ((node org-roam-node))
@@ -251,7 +562,7 @@
         (error "")))
   ;; Display node types
   (setq org-roam-node-display-template
-        (concat "${type:15} ${title:30} " (propertize "${tags}" 'face 'org-tag)))
+        (concat "${type:15} ${title:80} " (propertize "${tags}" 'face 'org-tag)))
 #+end_src
 
 *** Org Ref, Helm Bibtex & ORB
@@ -260,9 +571,9 @@
     (use-package org-roam-bibtex
       :ensure t :ensure helm-bibtex :ensure org-ref)
     ;; Set up bibliography
-    (setq bibtex-completion-bibliography '("/mnt/tsys/projects/emacs/gtd/bibtex.bib"))
+    (setq bibtex-completion-bibliography '("/mnt/tsys/repos/roam/bibtex.bib"))
     ;; Set up notes
-    (setq bibtex-completion-notes-path "/mnt/tsys/projects/emacs/roam/")
+    (setq bibtex-completion-notes-path "/mnt/tsys/repos/roam/")
     ;; Open pdf files stored in Zotero
     (setq bibtex-completion-pdf-field "File")
     ;; Customize layout of search results
@@ -414,302 +725,49 @@
   (add-to-list 'company-c-headers-path-system "/usr/include/c++/11")
 #+end_src
 
-* Org-Mode
-*** Activation
+*** Clang-Format
 
 #+begin_src elisp
-  (global-set-key (kbd "C-c l") 'org-store-link)
-  (global-set-key (kbd "C-c a") 'org-agenda)
-  (global-set-key (kbd "C-c c") 'org-capture)
+  (use-package clang-format)
+  (load "/usr/share/emacs/site-lisp/clang-format-14/clang-format.el")
+  ;in the project's root
+  ;clang-format -style=llvm -dump-config > .clang-format
 #+end_src
 
-*** Identation, Heading & Buffer
+*** Conda
 
 #+begin_src elisp
-  ;;Indentation
-    (setq org-startup-indented t
-          org-src-tab-acts-natively t)
-  ;;Collapse all header
-    (setq org-startup-folded t) ;; nil for expansion
-  ;;Show bullets instead of a dash in bullet lists
-    ;(font-lock-add-keywords 'org-mode
-    ;                        '(("^ *\\([-]\\)
-    ;                          (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))
-    ;(font-lock-add-keywords 'org-mo
-    ;                        '(("^ *\\([+]\\)
-    ;                        (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
-  ;;Buffer
-    (setq buffer-read-only nil)
-    (setq inhibit-read-only t)
-    (setq org-hide-emphasis-markers t
-          org-fontify-done-headline t
-          org-hide-leading-stars t
-          ;org-pretty-entities t
-          org-odd-levels-only t)
-    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+  (use-package conda
+    :config
+    (setq conda-anaconda-home (expand-file-name "~/anaconda3/"))
+    (setq conda-env-home-directory (expand-file-name "~/anaconda3/"))
+    (setq conda-env-subdirectory "envs"))
+  (unless (getenv "CONDA_DEFAULT_ENV")
+    (conda-env-activate "base"))
 #+end_src
 
-*** Structure Templates
+*** Jupyter
 
 #+begin_src elisp
-  ;; Org-tempo
-    (require 'org-tempo)
-    (setq org-src-fontify-natively t
-          org-src-tab-acts-natively t
-          org-confirm-babel-evaluate nil)
-          ;org-edit-src-content-indentation 0)
-  ;; Outline numbering
-    ;(use-package org-num
-    ;  :load-path "lisp/"
-    ;  :after org
-    ;  :hook (org-mode . org-num-mode))
+  (use-package jupyter)
+  (setq jupyter-repl-echo-eval-p t)
 #+end_src
 
-*** Faces Setup
-***** Keywords
+*** Jinx
 
 #+begin_src elisp
-  ;; Setup
-  (setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
-              (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)"))))
-  ;; Cannot set a headline to DONE if children aren’t DONE.
-  (setq-default org-enforce-todo-dependencies t)
-  ;; Foreground & Exporting
-  (setq org-todo-keyword-faces
-        (quote (("TODO" :foreground "red" :weight bold)
-                ("NEXT" :foreground "blue" :weight bold)
-                ("DONE" :foreground "forest green" :weight bold)
-                ("WAITING" :foreground "orange" :weight bold)
-                ("HOLD" :foreground "magenta" :weight bold)
-                ("CANCELLED" :foreground "forest green" :weight bold)
-                ("MEETING" :foreground "forest green" :weight bold)
-                ("PHONE" :foreground "forest green" :weight bold))))
-  ;; I don't wan't the keywords in my exports
-  (setq-default org-export-with-todo-keywords nil)
-  ;; Bullets & Icons
-  (with-eval-after-load 'org-superstar
-      (setq org-superstar-item-bullet-alist
-          '((?* . ?•)
-            (?+ . ?➤)
-            (?- . ?•)))
-      (setq org-superstar-special-todo-items t)
-      (setq org-superstar-remove-leading-stars t)
-      (setq org-superstar-todo-bullet-alist
-            '(("TODO" . ?☐)
-              ("NEXT" . ?✒)
-              ("HOLD" . ?✰)
-              ("WAITING" . ?☕)
-              ("CANCELLED" . ?✘)
-              ("DONE" . ?✔)))
-      (org-superstar-restart))
-  ;; Set Faces
-  (defun butler/set-keyword-faces-org ()
-    (mapc (lambda (pair) (push pair prettify-symbols-alist))
-          '(;; Syntax
-            ("TODO" .     "")
-            ("DONE" .     "")
-            ("WAITING" .  "")
-            ("HOLD" .     "")
-            ("NEXT" .     "")
-            ("CANCELLED" . "")
-            ("#+begin_quote" . "“")
-            ("#+end_quote" . "”")))
-    (prettify-symbols-mode +1)
-    (org-superstar-mode +1)
-    )
+  (use-package jinx
+    :hook (emacs-startup . global-jinx-mode)
+    :bind (("M-$" . jinx-correct)
+           ("C-M-$" . jinx-languages)))
 #+end_src
 
-***** Propotional Width
+*** Ellama
 
 #+begin_src elisp
-  (defun butler/buffer-face-mode-variable ()
-    "Set font to a variable width (proportional) fonts in current buffer"
-    (interactive)
-    (setq buffer-face-mode-face '(:family "Monospace"
-                                  :height 110
-                                  :width normal))
-    (buffer-face-mode))
-#+end_src
-
-***** Variable Pitch
-
-#+begin_src elisp
-  (defun butler/set-general-faces-org ()
-    (butler/buffer-face-mode-variable)
-    (setq ;line-spacing 0.2
-          ;org-pretty-entities t
-          org-startup-indented t
-          org-adapt-indentation nil)
-    (variable-pitch-mode +1)
-    (mapc
-     (lambda (face) ;; Other fonts that require it are set to fixed-pitch.
-       (set-face-attribute face nil :inherit 'fixed-pitch))
-     (list 'org-block
-           'org-table
-           'org-verbatim
-           'org-block-begin-line
-           'org-block-end-line
-           'org-meta-line
-           'org-date
-           'org-drawer
-           'org-property-value
-           'org-special-keyword
-           'org-document-info-keyword))
-    (mapc ;; This sets the fonts to a smaller size
-     (lambda (face)
-       (set-face-attribute face nil :height 0.8))
-     (list 'org-document-info-keyword
-           'org-block-begin-line
-           'org-block-end-line
-           'org-block
-           'org-meta-line
-           'org-drawer
-           'org-property-value
-           'org-special-keyword
-           ;;'org-link
-           'org-footnote
-           )))
-#+end_src
-
-***** Colors & Size of Headlines
-
-#+begin_src elisp
-  (defun butler/set-specific-faces-org ()
-    (set-face-attribute 'org-code nil
-                        :inherit '(shadow fixed-pitch))
-    ;; Without indentation the headlines need to be different to be visible
-    (set-face-attribute 'org-level-1 nil
-                        :height 1.25
-                        :foreground "#BEA4DB")
-    (set-face-attribute 'org-level-2 nil
-                        :height 1.15
-                        :foreground "#A382FF"
-                        :slant 'italic)
-    (set-face-attribute 'org-level-3 nil
-                        :height 1.1
-                        :foreground "#5E65CC"
-                        :slant 'italic)
-    (set-face-attribute 'org-level-4 nil
-                        :height 1.05
-                        :foreground "#ABABFF")
-    (set-face-attribute 'org-level-5 nil
-                        :foreground "#2843FB")
-    (set-face-attribute 'org-date nil
-                        :foreground "#ECBE7B"
-                        :height 0.8)
-    (set-face-attribute 'org-document-title nil
-                        :foreground "DarkOrange3"
-                        :height 1.3)
-    (set-face-attribute 'org-ellipsis nil
-                        :foreground "#4f747a" :underline nil)
-    (set-face-attribute 'variable-pitch nil
-                        :family "Monospace" :height 1.2))
-#+end_src
-
-***** Styles
-
-#+begin_src elisp
-  (defun butler/style-org ()
-    (butler/set-general-faces-org)
-    (butler/set-specific-faces-org)
-    (butler/set-keyword-faces-org)
-    )
-  (add-hook 'org-mode-hook 'butler/style-org)
-#+end_src
-
-*** Babel
-
-#+begin_src elisp
-  (org-babel-do-load-languages
-   'org-babel-load-languages '((latex . t)
-                               (emacs-lisp . t)
-                               ;(maxima .t)
-                               ;(jupyter . t)
-                               (R . t)))
-  ;(org-babel-jupyter-override-src-block "python")
-  ;(org-babel-jupyter-override-src-block "julia")
-  (add-to-list 'org-structure-template-alist
-               '("j" . "src julia :session *jl*"))
-  (add-to-list 'org-structure-template-alist
-               '("p" . "src python :session *py*"))
-  (add-to-list 'org-structure-template-alist
-               '("m" . "src maxima :session *wxm*"))
-  (add-to-list 'org-structure-template-alist
-               '("r" . "src R :session *r*"))
-#+end_src
-
-*** Latex
-
-#+begin_src elisp
-  ;; Scale latex fragment
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
-  ;; dvisvgm setup for Latex
-  (setq org-latex-create-formula-image-program 'dvisvgm)
-  (setq org-preview-latex-default-process 'dvisvgm)
-  ;(setq org-preview-latex-process-alist 'dvisvgm)
-  ;(require ‘latex-preview-pane)
-  ;(latex-preview-pane-enable)
-  ;; images preview
-  (setq org-startup-with-inline-images t)
-  ;; highlight code using mint
-  (setq org-latex-listings 'minted
-        org-latex-packages-alist '(("" "minted"))
-        ;org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
-        )
-  (setq org-latex-pdf-process
-        '("xelatex -interaction nonstopmode -output-directory %o %f"
-          "biber --output-directory %o $(basename %f .tex)"
-          "xelatex -interaction nonstopmode -output-directory %o %f"
-          "xelatex -interaction nonstopmode -output-directory %o %f"))
-  ;; mint style
-  (setq org-latex-minted-options
-        '(;("frame" "lines")
-          ("fontsize" "\\footnotesize")
-          ("mathescape" "")
-          ("samepage" "")
-          ;("xrightmargin" "0.5cm")
-          ("xleftmargin"  "1cm")
-          ("bgcolor" "lightgray")
-          ("linenos")
-          ("firstnumber" "last")
-          ("tabsize" "4")
-          ("autogobble")
-          ("numbersep" "0.5cm")
-          ("breaklines" "true")
-          ))
-  (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
-#+end_src
-
-*** GTD
-
-#+begin_src elisp
-    ;; Files
-    (setq org-directory "/mnt/tsys/projects/emacs/gtd")
-    (setq org-agenda-files '("/mnt/tsys/projects/emacs/gtd"))
-    (global-set-key (kbd "<f7>") #'org-capture)
-    (setq org-capture-templates
-          `(("i" "Inbox" entry
-             (file "inbox.org")
-             (file "~/.emacs.d/capture/inbox.org")
-             :empty-lines-before 1)
-           ("m" "Meeting" entry
-            (file "agenda.org")
-            (file "~/.emacs.d/capture/agenda.org")
-            :empty-lines-before 1)))
-    (defun org-capture-inbox ()
-      (interactive)
-      (call-interactively 'org-store-link)
-      (org-capture nil "i"))
-    ;; Use full window for org-capture
-    (add-hook 'org-capture-mode-hook 'delete-other-windows)
-    ;; Key bindings
-    (define-key global-map (kbd "C-c i") 'org-capture-inbox)
-    ;;Refile
-    (setq org-refile-targets '((org-agenda-files :maxlevel . 1)))
-    (setq org-refile-use-outline-path 'file)
-    (setq org-outline-path-complete-in-steps nil)
-    (setq org-refile-allow-creating-parent-nodes 'confirm)
+  (use-package ellama
+      :bind ("C-c e" . ellama-transient-main-menu)
+      :init)
 #+end_src
 
 * Utility Functions
@@ -780,4 +838,26 @@
       (rename-file (concat "/mnt/c/Users/Public/" file-name) file-path-wsl)
       (insert (concat "[[file:" file-path-wsl "]]"))
       (message "insert DONE.")))
+#+end_src
+
+*** Extract Correct Answers
+
+#+begin_src elisp
+  (defun butler/extract-correct-answers (file-path)
+    "Extract correct answers with question numbers and save them to a CSV file."
+    (interactive "FEnter file path to save answers (as CSV): ") ; Prompt user for file path
+    (let ((answers '())
+          (question-number 1)) ; Start question numbering from 1
+      (save-excursion
+        (goto-char (point-min)) ; Start at the beginning of the buffer
+        (while (re-search-forward "^:Correct: \\(.*\\)$" nil t)
+          (let ((answer (match-string 1))) ; Capture the answer
+            (push (format "%d,%s" question-number answer) answers) ; Format as CSV row
+            (setq question-number (1+ question-number))))) ; Increment question number
+      (setq answers (reverse answers)) ; Reverse the list for correct order
+      (with-temp-file file-path ; Write answers to the specified file
+        (insert "Question,Answer\n") ; Add a CSV header
+        (dolist (answer answers)
+          (insert answer "\n"))) ; Write each answer in a new line
+      (message "Answers saved to %s" file-path))) ; Notify the user
 #+end_src
