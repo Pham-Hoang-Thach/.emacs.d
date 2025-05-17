@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: testbank
+# key: <tb
+# --
+
+|<c>|<c>|
+|TRƯỜNG ĐẠI HỌC MỞ|MÔN THI: ${1:SUBJECT}|
+|THÀNH PHỐ HỒ CHÍ MINH| Thời gian làm bài: ${2:phút}_ĐỀ SỐ: ${3:3digits}|
+|KHOA TÀI CHÍNH NGÂN HÀNG| Đề thi gồm: ${4:số câu} câu / ${5:số trang} trang|
+Họ, tên thí sinh: ........................................
+MSSV: ..........
+(Sinh viên *Được* sử dụng tài liệu, Sinh viên làm bài trên phiếu trả lời trắc nghiệm)
+$0
+
+

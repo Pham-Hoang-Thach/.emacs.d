@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: Working Paper - EN
+# key: <ew
+# --
+
+bibliography:/mnt/tsys/dg/roam/bibtex.bib
+bibliographystyle:apalike
+
+#+options: TeX:t LaTeX:t toc:nil email:t
+#+latex_header: \usepackage[bottom=2.5cm, right=1.5cm, left=1.5cm, top=1.5cm]{geometry}
+#+latex_header: \usepackage[round]{natbib}
+#+author: ${1:author}
+#+email: ${2:emal}
+#+title: ${3:title}
+#+date: \today
+
+$0

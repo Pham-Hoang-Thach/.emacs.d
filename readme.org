@@ -18,7 +18,7 @@
   (setq default-buffer-file-coding-system 'utf-8)
   (set-language-environment "UTF-8")
   (setq tab-width 4)
-  (set-face-attribute 'default nil :height 160)
+  (set-face-attribute 'default nil :height 180)
 #+end_src
 
 *** Stop Emacs Littering
@@ -54,8 +54,15 @@
   ;; (setq-default line-spacing 0.5)
   ;; Underline line at descent position, not baseline position
   (setq x-underline-at-descent-line t)
-  (setq user-full-name "Thach H. Pham")
+  ;(setq user-full-name "Thach H. Pham")
+  (setq default-frame-alist '((minibuffer . t)))
+  (setq org-export-with-toc nil)      ;; Disable table of contents
+  ;(setq org-export-with-author nil)  ;; Exclude author name
+  (setq org-tags-column 50) ;; All tags will start at column 120
 #+end_src
+
+#+RESULTS:
+: 50
 
 *** XDG-Open
 
@@ -295,7 +302,7 @@
 *** Latex
 
 #+begin_src elisp
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.9))
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
    ;; dvisvgm setup for Latex
   (setq org-latex-create-formula-image-program 'dvisvgm)
   (setq org-preview-latex-default-process 'dvisvgm)
@@ -770,6 +777,14 @@
       :init)
 #+end_src
 
+*** Ox-Pandoc
+
+#+begin_src elisp
+  (use-package ox-pandoc
+    :config
+    (setq org-pandoc-options '((standalone . t))))
+#+end_src
+
 * Utility Functions
 *** Update Tags for Latex Formulae
 
@@ -840,7 +855,7 @@
       (message "insert DONE.")))
 #+end_src
 
-*** Balancing MCQ System
+*** MCQ Balance Engine
 ***** Unique Mixing Heading & Generating Random Exam Code
 
 #+begin_src elisp
@@ -927,114 +942,118 @@
       (pop-to-buffer buffer)))
 
   ;; Main function that combines headings by tags and allows the user to select a unique combination.
-  (defun butler/persistent-org-combo-shuffler ()
+  (defun butler/mcq-persistent-org-combo-shuffler ()
     "Select unique org headings by tag-input with persistent uniqueness."
     (interactive)
 
     (let* ((org-file (buffer-file-name))
-           (all-tag-headings (make-hash-table :test 'equal)))
+           (all-tag-headings (make-hash-table :test 'equal))
+           (previous-combinations (load-unique-combinations org-file))
+           final-combination)
 
-      ;; Step 1: Index headings by tag
-      (save-excursion
-        (goto-char (point-min))
-        (let ((current-heading nil)
-              (current-tags nil))
-          (while (not (eobp))
-            (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-              (cond
-               ;; Match a heading line with tags
-               ((string-match "^\\*+.*\\(:[a-zA-Z0-9_@:]+:\\)" line)
-                (when current-heading
-                  ;; Add previous heading to tags in hash table
-                  (dolist (tag current-tags)
-                    (puthash tag (cons (reverse current-heading)
-                                       (gethash tag all-tag-headings)) all-tag-headings)))
-                ;; Extract tags from the current line
-                (setq current-tags (split-string (replace-regexp-in-string ":" "" (match-string 1 line)) ":" t))
-                ;; Start a new heading
-                (setq current-heading (list line)))
-               ((and current-heading) (push line current-heading))))  ;; Append lines to current heading
-            (forward-line 1))
-          ;; Save last heading if there is one
-          (when current-heading
-            (dolist (tag current-tags)
-              (puthash tag (cons (reverse current-heading)
-                                 (gethash tag all-tag-headings)) all-tag-headings)))))
+  ;; Step 1: Index tags only from top-level parents or leaf nodes
+  (save-excursion
+    (goto-char (point-min))
+    (let ((headings '()))
+      ;; Collect all headings
+      (org-map-entries
+       (lambda ()
+         (let* ((tags (org-get-tags))
+                (level (org-current-level))
+                (begin (point))
+                (end (save-excursion (org-end-of-subtree t t)))
+                (has-children (save-excursion
+                                (goto-char begin)
+                                (re-search-forward (format "^\\*\\{1,%d\\} " (1+ level)) end t)))
+                (content (split-string
+                          (buffer-substring-no-properties
+                           (line-beginning-position)
+                           end)
+                          "\n")))
+           (when tags
+             (push (list :tags tags
+                         :level level
+                         :has-children has-children
+                         :content content)
+                   headings))))
+       nil 'file)
 
-      ;; Step 2: Display the tags and their available counts
+      ;; Build tag index (filter only top-parents or leafs)
+      (let ((filtered-headings
+             (seq-filter (lambda (h)
+                           (let ((lvl (plist-get h :level))
+                                 (kids (plist-get h :has-children)))
+                             (or (and (= lvl 1) kids)  ; top parent with children
+                                 (not kids))))        ; leaf node
+                         headings)))
+        (dolist (h filtered-headings)
+          (dolist (tag (plist-get h :tags))
+            (puthash tag
+                     (cons (plist-get h :content)
+                           (gethash tag all-tag-headings))
+                     all-tag-headings))))))
+      
+      ;; Step 2: Display tag summary
       (display-tag-summary all-tag-headings)
 
-      ;; Step 3: Validate the tag input (check for valid tags and counts)
-      (let ((tag-counts '())   ;; Initialize an empty list for parsed tag counts
+      ;; Step 3: Tag input validation
+      (let ((tag-counts '())
             (valid-input nil)
             (prompt "Enter tags and numbers (e.g., math=2,science=3): "))
         (while (not valid-input)
           (let* ((tag-input (read-string prompt))
-                 (parsed-tag-counts '())  ;; Reset parsed counts each time
+                 (parsed-tag-counts '())
                  (valid t))
-            ;; Validate that input is not empty
             (if (not (string-blank-p tag-input))
-                (dolist (pair (split-string tag-input "," t))  ;; Split input by commas
+                (dolist (pair (split-string tag-input "," t))
                   (let* ((split (split-string pair "="))
                          (tag (car split))
                          (count (and (cadr split) (string-to-number (cadr split))))
                          (available (gethash tag all-tag-headings)))
-                    ;; Check if the tag exists and if there are enough available headings
-                    (if (or (null available) (< (length available) count))
-                        (setq valid nil)  ;; Invalid if tag not found or count exceeds available
+                    (if (or (null available) (<= count 0) (< (length available) count))
+                        (setq valid nil)
                       (push (cons tag count) parsed-tag-counts))))
-              (setq valid nil))  ;; Invalid if input is empty
-
+              (setq valid nil))
             (if valid
-                (progn
-                  (setq tag-counts (nreverse parsed-tag-counts))  ;; Reverse the parsed counts for correct order
-                  (setq valid-input t))  ;; Valid input, exit the loop
+                (setq tag-counts (nreverse parsed-tag-counts)
+                      valid-input t)
               (setq prompt "Wrong input. Re-Enter tags and numbers (e.g., math=2,science=3): "))))
 
-        ;; Step 4: Ask if the user wants to display tags in the output
-        (let* ((show-tags-choice (completing-read "Show tags in output? " '("Yes" "No")))
-               (show-tags (string= show-tags-choice "Yes"))
-               (previous-combinations (load-unique-combinations org-file))
-               final-combination)
+        ;; Step 4: Generate unique combination
+        (let ((attempt 0)
+              (max-attempts 1000)
+              (unique-combo-found nil))
+          (while (and (< attempt max-attempts) (not unique-combo-found))
+            (setq attempt (1+ attempt))
+            (let ((combo '()))
+              (dolist (tag-count tag-counts)
+                (let* ((tag (car tag-count))
+                       (count (cdr tag-count))
+                       (available (shuffle-list (copy-sequence (gethash tag all-tag-headings))))
+                       (selected '()))
+                  (while (and available (< (length selected) count))
+                    (let ((candidate (pop available)))
+                      (unless (or (member candidate selected)
+                                  (seq-some (lambda (combo)
+                                              (seq-some (lambda (x) (equal x candidate)) combo))
+                                            previous-combinations))
+                        (push candidate selected))))
+                  (when (< (length selected) count)
+                    (let ((fallbacks (shuffle-list (copy-sequence (gethash tag all-tag-headings)))))
+                      (while (and fallbacks (< (length selected) count))
+                        (let ((extra (pop fallbacks)))
+                          (unless (member extra selected)
+                            (push extra selected))))))
+                  (setq combo (append combo selected))))
+              (setq combo (shuffle-list combo))
+              (unless (seq-some (lambda (prev)
+                                  (equal (normalize-combination combo)
+                                         (normalize-combination prev)))
+                                previous-combinations)
+                (setq final-combination combo)
+                (setq unique-combo-found t))))
 
-          ;; Step 5: Generate a unique combination
-          (let ((attempt 0)
-                (max-attempts 1000)
-                (unique-combo-found nil))
-            (while (and (< attempt max-attempts) (not unique-combo-found))
-              (setq attempt (1+ attempt))
-              (let ((combo '()))
-                (dolist (tag-count tag-counts)  ;; Process each tag-count pair
-                  (let* ((tag (car tag-count))  ;; tag
-                         (count (cdr tag-count))  ;; count
-                         (available (shuffle-list (copy-sequence (gethash tag all-tag-headings))))
-                         (selected '()))
-                    ;; Select random headings for the tag
-                    (while (and available (< (length selected) count))
-                      (let ((candidate (pop available)))
-                        (unless (or (member candidate selected)
-                                    (seq-some (lambda (combo)
-                                                (seq-some (lambda (x) (equal x candidate)) combo))
-                                              previous-combinations))
-                          (push candidate selected))))
-                    ;; Fallback if not enough headings are found
-                    (when (< (length selected) count)
-                      (let ((fallbacks (shuffle-list (copy-sequence (gethash tag all-tag-headings)))))
-                        (while (and fallbacks (< (length selected) count))
-                          (let ((extra (pop fallbacks)))
-                            (unless (member extra selected)
-                              (push extra selected))))))
-                    (setq combo (append combo selected))))
-                (setq combo (shuffle-list combo))
-                ;; Check for uniqueness
-                (unless (seq-some (lambda (prev)
-                                    (equal (normalize-combination combo)
-                                           (normalize-combination prev)))
-                                  previous-combinations)
-                  (setq final-combination combo)
-                  (setq unique-combo-found t))))
-
-          ;; Step 6: Display the result or failure message
+          ;; Step 5: Display result or error
           (if (not final-combination)
               (message "Failed to generate unique combo after %d attempts." max-attempts)
             (push final-combination previous-combinations)
@@ -1047,23 +1066,37 @@
                 (insert (format "*Exam code:* %d\n\n" code))
                 (dolist (heading final-combination)
                   (let ((header-line (car heading)))
-                    (insert (if show-tags
-                                header-line
-                              (replace-regexp-in-string "\\(:[a-zA-Z0-9_@:]+:\\)" "" header-line))
-                            "\n")
-                    (dolist (line (cdr heading))
-                      (cond
-                       ((string-match-p "^\\s-*:END:" line)
-                        (insert line "\n\n"))
-                       ((string-match-p "^\\s-*:PROPERTIES:" line)
-                        (insert line "\n"))
-                       ((string-match-p "^\\s-*:.*" line)
-                        (insert line "\n"))
-                       (t
-                        (insert line "\n\n"))))
-                    (insert "\n"))))
+                    (insert header-line "\n")
+                    (let ((prev-line-type nil))
+                      (dolist (line (cdr heading))
+                        (cond
+                         ((string-match-p "^\\s-*:PROPERTIES:" line)
+                          (insert line "\n")
+                          (setq prev-line-type 'prop))
+                         ((string-match-p "^\\s-*:END:" line)
+                          (insert line "\n")
+                          (setq prev-line-type 'prop-end))
+                         ((string-match-p "^\\s-*:.*" line)
+                          (insert line "\n")
+                          (setq prev-line-type 'prop))
+                         ((string-match-p "^\\*+" line)
+                          (when (eq prev-line-type 'prop-end)
+                            (insert "\n"))
+                          (insert line "\n")
+                          (setq prev-line-type 'meta))
+                         (t
+                          ;; Add blank line after properties
+                          (when (memq prev-line-type '(prop prop-end))
+                            (insert "\n"))
+                          ;; Add blank line between content paragraphs
+                          (when (and (eq prev-line-type 'content)
+                                     (not (string-blank-p line)))
+                            (insert "\n"))
+                          (insert line "\n")
+                          (setq prev-line-type 'content))))))
+                  (insert "\n")))
               (switch-to-buffer buffer)
-              (message "Unique combination generated in %d attempt(s)." attempt)))))))) 
+              (message "Unique combination generated in %d attempt(s)." attempt)))))))
 #+end_src
 
 ***** Extract Correct Answers
@@ -1071,7 +1104,7 @@
 #+begin_src elisp
   (require 'subr-x)  ;; For string-trim
 
-  (defun butler/extract-correct-answers (file-path)
+  (defun butler/mcq-extract-correct-answers (file-path)
     "Extract :Correct: answers from the current Org buffer and save to FILE-PATH as a CSV.
   Keeps only the most recent answers by deleting everything above the last 'Question,Answer'."
     (interactive
@@ -1106,3 +1139,142 @@
 
       (message "Saved %d answers to %s" (1- qnum) file-path)))
 #+end_src
+
+***** Renumber Questions with Cleaned Formatting
+
+#+begin_src elisp
+  (defun butler/mcq-export-cleaned-questions ()
+    "Reformat Org buffer by renumbering questions as 'Question N' or 'Câu N',
+  removing properties, preserving '*Exam code:* NNN', and asking whether to show tags.
+  Adds blank lines after Org-mode tables but not before them."
+
+    (interactive)
+    (let ((use-vietnamese (y-or-n-p "Use Vietnamese format ('Câu') for question headings? "))
+          (show-tags (y-or-n-p "Show tags in cleaned output? "))
+          (output-buffer (get-buffer-create "*Formatted Questions*"))
+          (count 1)
+          (exam-code-line nil)
+          (inside-table nil))  ;; Track if we are inside a table
+
+      ;; Prepare output buffer
+      (with-current-buffer output-buffer
+        (erase-buffer)
+        (org-mode))
+
+      ;; Scan the buffer
+      (save-excursion
+        (goto-char (point-min))
+
+        ;; Check if exam code line exists
+        (when (re-search-forward "^\\*Exam code:\\*\\s-*\\([0-9]+\\)" nil t)
+          (setq exam-code-line (buffer-substring-no-properties (match-beginning 0) (match-end 0))))
+
+        ;; Write Exam code line first if found
+        (when exam-code-line
+          (with-current-buffer output-buffer
+            (insert exam-code-line "\n\n")))
+
+        ;; Restart scan from beginning
+        (goto-char (point-min))
+
+        ;; Process all headings except Exam code
+        (while (re-search-forward "^\\*+\\s-+\\(.*\\)$" nil t)
+          (let* ((heading-line (match-string 0))
+                 (is-exam-code (string-match "^\\*Exam code:\\*" heading-line))
+                 (start (match-beginning 0))
+                 (end (save-excursion
+                        (if (re-search-forward "^\\*+\\s-" nil t)
+                            (match-beginning 0)
+                          (point-max)))))
+
+            (unless is-exam-code
+              (let ((section (buffer-substring-no-properties start end))
+                    (in-properties nil)
+                    (lines nil)
+                    (tag-part "")
+                    (question-text "")
+                    (body-lines '()))
+
+                ;; Split and parse lines
+                (setq lines (split-string section "\n" t))
+
+                ;; Extract tags from heading
+                (when (string-match ":\\([^:\n]+\\(?::[^:\n]+\\)*\\):\\s-*$" (car lines))
+                  (setq tag-part (match-string 0 (car lines))))
+
+                ;; Skip heading line
+                (setq lines (cdr lines))
+
+                ;; Process lines, skipping :PROPERTIES: drawer
+                (dolist (line lines)
+                  (cond
+                   ((string-match "^\\s-*:PROPERTIES:" line)
+                    (setq in-properties t))
+                   ((string-match "^\\s-*:END:" line)
+                    (setq in-properties nil))
+                   ((not in-properties)
+                    (push line body-lines))))
+
+                (setq body-lines (nreverse body-lines))
+                (setq question-text (car (seq-drop-while #'string-blank-p body-lines)))
+                (setq body-lines (cdr (member question-text body-lines)))
+
+                ;; Insert cleaned heading and content
+                (with-current-buffer output-buffer
+                  (insert (format "*%s %d:* %s" (if use-vietnamese "Câu" "Question") count question-text))
+                  (when (and show-tags tag-part)
+                    (insert "  " tag-part))
+                  (insert "\n\n")
+
+                  ;; Process the body lines
+                  (dolist (line body-lines)
+                    (cond
+                     ;; Table handling: Do NOT add a blank line before, but **always** add one after
+                     ((string-prefix-p "|" line)
+                      (insert line "\n")
+                      (setq inside-table t))
+
+                     ;; End of table: **Force a blank line**
+                     ((and inside-table (not (string-prefix-p "|" line)))
+                      (setq inside-table nil)
+                      (insert "\n" line "\n\n"))  ;; **Ensures a blank line after the table**
+
+                     ;; Non-table content (add blank line after regular content)
+                     (t
+                      (unless (string-blank-p line)
+                        (insert line "\n\n"))))))  ;; Blank line after non-table content
+
+              (setq count (1+ count)))))))
+
+      ;; Show result
+      (switch-to-buffer output-buffer)))
+#+end_src
+
+***** Check Missing Correct Answers
+
+#+begin_src elisp
+  (defun butler/mcq-check-missing-correct-answers ()
+    "Find questions with a blank :Correct: property and show clickable links to fix them."
+    (interactive)
+    (let ((results '()))
+      (org-map-entries
+       (lambda ()
+         (let ((correct (org-entry-get (point) "Correct")))
+           (when (and correct (string-blank-p correct))
+             (let ((link (org-store-link nil)))
+               (push link results)))))
+       nil 'file)
+      (if results
+          (let ((buf (get-buffer-create "*Fix Blank :Correct:*")))
+            (with-current-buffer buf
+              (erase-buffer)
+              (insert "* Questions missing :Correct: value\n\n")
+              (dolist (link (reverse results))
+                (insert "- " link "\n"))
+              (org-mode))
+            (display-buffer buf))
+        (message "All questions have valid :Correct: answers."))))
+#+end_src
+
+
+
