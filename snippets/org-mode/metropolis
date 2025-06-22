@@ -1,0 +1,38 @@
+# -*- mode: snippet -*-
+# name: metropolis
+# key: <m
+# --
+
+#+latex_compiler: xelatex
+#+options: email:nil etimestamp:t title:t toc:nil todo:nil |:
+#+options: H:2 num:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+options: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:t ltoc:t mouse:underline buttons:0 path:https://orgmode.org/org-info.js
+#+title: ${1:title}
+#+BEAMER_HEADER: \subtitle{${2:subtitle}}
+#+author: Thach H. Pham (PhD)
+#+latex_header: \institute{Faculty of Finance and Banking  \\ \texttt{thach.ph@ou.edu.vn}}
+#+date: \today
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs (Org mode)
+#+cite_export:
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usetheme{metropolis}
+#+latex_header: \setbeamertemplate{section in toc}[sections numbered]
+#+latex_header: \setbeamertemplate{frametitle continuation}[from second][(Contd.)]
+#+LATEX_HEADER: \pretocmd{\tableofcontents}{\thispagestyle{empty}}{}{}
+#+LATEX_HEADER: \addtocounter{framenumber}{-1}
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+#+begin_export latex
+\begin{frame}[allowframebreaks]
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+#+end_export
+
+$0
