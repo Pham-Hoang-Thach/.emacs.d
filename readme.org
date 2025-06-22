@@ -61,9 +61,6 @@
   (setq org-tags-column 50) ;; All tags will start at column 120
 #+end_src
 
-#+RESULTS:
-: 50
-
 *** XDG-Open
 
 #+begin_src elisp
@@ -150,32 +147,17 @@
       (setq org-superstar-item-bullet-alist
           '((?* . ?•)
             (?+ . ?➤)
-            (?- . ?•)))
+            (?- . ?★)))
       (setq org-superstar-special-todo-items t)
       (setq org-superstar-remove-leading-stars t)
-      (setq org-superstar-todo-bullet-alist
-            '(("TODO" . ?☐)
-              ("NEXT" . ?✒)
-              ("HOLD" . ?✰)
-              ("WAITING" . ?☕)
-              ("CANCELLED" . ?✘)
-              ("DONE" . ?✔)))
       (org-superstar-restart))
   ;; Set Faces
   (defun butler/set-keyword-faces-org ()
     (mapc (lambda (pair) (push pair prettify-symbols-alist))
           '(;; Syntax
-            ("TODO" .     "")
-            ("DONE" .     "")
-            ("WAITING" .  "")
-            ("HOLD" .     "")
-            ("NEXT" .     "")
-            ("CANCELLED" . "")
             ("#+begin_quote" . "“")
             ("#+end_quote" . "”")))
-    (prettify-symbols-mode +1)
-    (org-superstar-mode +1)
-    )
+    (prettify-symbols-mode +1))
 #+end_src
 
 ***** Propotional Width
@@ -311,6 +293,7 @@
    ;(latex-preview-pane-enable)
    ;; images preview
   (setq org-startup-with-inline-images t)
+  (setq org-startup-with-latex-preview t)
    ;; highlight code using mint
   (setq org-latex-compiler "xelatex")
   (add-to-list 'org-latex-packages-alist '("" "minted"))
@@ -344,7 +327,7 @@
 
 #+begin_src elisp
   ;; Files
-  (setq org-directory "/mnt/tsys/gtd")
+  (setq org-directory "/mnt/tsys/sys/orgmode")
   (setq org-agenda-files (list org-directory))
   (global-set-key (kbd "<f7>") #'org-capture)
   (setq org-capture-templates
@@ -550,7 +533,7 @@
     ;:init
     ;(setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/tsys/repos/roam")
+    (org-roam-directory "/mnt/tsys/sys/roam")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -792,6 +775,19 @@
   (use-package ox-pandoc
     :config
     (setq org-pandoc-options '((standalone . t))))
+#+end_src
+
+*** Auto-Package-Update
+
+#+begin_src elisp
+  (use-package auto-package-update
+    :ensure t
+    :custom
+    (auto-package-update-interval 7) ;; check every 7 days
+    (auto-package-update-prompt-before-update t) ;; ask before updating
+    (auto-package-update-delete-old-versions t) ;; clean up after updating
+    :config
+    (auto-package-update-maybe))
 #+end_src
 
 * Utility Functions

@@ -1,4 +1,3 @@
-#+startup: latexpreview
 #+filetags: %^{keywords}
 + Abstract :: %^{abstract}
 

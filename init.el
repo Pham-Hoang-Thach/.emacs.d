@@ -36,7 +36,17 @@
  '(doc-view-continuous t)
  '(org-log-into-drawer t)
  '(package-selected-packages
-   '(ellama clang-format+ clang-format company-c-headers auto-complete transpose-frame nov-xwidget nov djvu command-log-mode solaire-mode font-lock font-lock+ multiple-cursors org-superstar org-download yasnippet maxima julia-mode jupyter conda company ess org-roam-ui org-ref helm-bibtex org-roam-bibtex org-roam org-noter-pdftools org-pdftools org-noter pdf-tools magit which-key org-fragtog olivetti counsel all-the-icons all-the-icons-ivy doom-modeline doom-themes use-package)))
+   '(all-the-icons all-the-icons-ivy auto-complete auto-package-update
+                   clang-format clang-format+ command-log-mode company
+                   company-c-headers conda counsel djvu doom-modeline
+                   doom-themes ellama ess font-lock font-lock+
+                   helm-bibtex julia-mode jupyter magit maxima
+                   multiple-cursors nov nov-xwidget olivetti
+                   org-download org-fragtog org-noter
+                   org-noter-pdftools org-pdftools org-ref org-roam
+                   org-roam-bibtex org-roam-ui org-superstar pdf-tools
+                   solaire-mode transpose-frame use-package which-key
+                   yasnippet)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
