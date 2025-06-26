@@ -35,18 +35,7 @@
  ;; If there is more than one, they won't work right.
  '(doc-view-continuous t)
  '(org-log-into-drawer t)
- '(package-selected-packages
-   '(all-the-icons all-the-icons-ivy auto-complete auto-package-update
-                   clang-format clang-format+ command-log-mode company
-                   company-c-headers conda counsel djvu doom-modeline
-                   doom-themes ellama ess font-lock font-lock+
-                   helm-bibtex julia-mode jupyter magit maxima
-                   multiple-cursors nov nov-xwidget olivetti
-                   org-download org-fragtog org-noter
-                   org-noter-pdftools org-pdftools org-ref org-roam
-                   org-roam-bibtex org-roam-ui org-superstar pdf-tools
-                   solaire-mode transpose-frame use-package which-key
-                   yasnippet)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

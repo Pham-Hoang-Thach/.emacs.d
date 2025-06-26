@@ -4,6 +4,471 @@
 #+language: en
 #+property: results silent
 
+* Packages
+*** Doom Themes
+
+#+begin_src elisp
+  (setq custom-safe-themes t)
+  (use-package doom-themes
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
+#+end_src
+
+*** Solaire Mode
+
+#+begin_src elisp
+  (use-package solaire-mode
+    :config
+    (solaire-global-mode +1))
+#+end_src
+
+*** Doom Modeline
+
+#+begin_src elisp
+  (use-package doom-modeline
+    :init (doom-modeline-mode 1))
+  (add-hook 'inferior-ess-mode-hook
+        (lambda ()
+          (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
+#+end_src
+
+*** Org Superstars
+
+#+begin_src elisp
+  (use-package org-superstar
+       :config
+       (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "❀" "☢" "☯" "✜" "◆" "▶"))
+       (setq org-ellipsis " ▼")
+       (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+#+end_src
+
+*** All The Icons
+
+#+begin_src elisp
+  (use-package all-the-icons
+    :if (display-graphic-p))
+  ; install all-the-icons and nerd fonts
+#+end_src
+
+*** All The Icons Ivy
+
+#+begin_src elisp
+  (use-package all-the-icons-ivy
+    :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
+#+end_src
+
+*** Ivy, Counsel & Swiper
+
+#+begin_src elisp
+  (use-package ivy
+    :ensure t :ensure counsel :ensure swiper)
+  ;; Enable Ivy mode in general
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  ;; Add Counsel and Swiper search functions
+  (global-set-key (kbd "C-c f r") #'counsel-recentf)
+  (global-set-key (kbd "C-s") #'swiper)
+  ;; Replace default "M-x" and "C-x C-f" with Counsel version
+  (global-set-key (kbd "M-x") #'counsel-M-x)
+  (global-set-key (kbd "C-x C-f") #'counsel-find-file)
+  ;; Replace describe-function and describe-variable with Counsel version
+  (global-set-key (kbd "C-h f") 'counsel-describe-function)
+  (global-set-key (kbd "C-h v") 'counsel-describe-variable)
+#+end_src
+ 
+*** Olivetti
+
+#+begin_src elisp
+  (use-package olivetti)
+  ;; Set the body text width
+  (setq olivetti-body-width 80)
+  ;; Enable Olivetti for text-related mode such as Org Mode
+  ;(add-hook 'text-mode-hook 'olivetti-mode)
+#+end_src
+  
+*** Org Fragtog
+
+#+begin_src elisp
+  (use-package org-fragtog)
+  (add-hook 'org-mode-hook 'org-fragtog-mode)
+#+end_src
+
+*** Which Key
+
+#+begin_src elisp
+  (use-package which-key
+    :init (which-key-mode)
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0))
+#+end_src
+
+*** Magit
+
+#+begin_src elisp
+  (use-package magit)
+  (global-set-key (kbd "C-c g") 'magit-file-dispatch)
+#+end_src
+
+*** PDF Tools
+
+#+begin_src elisp
+  (use-package pdf-tools)
+  (pdf-loader-install)
+  (setq auto-revert-interval 0.5)
+  (auto-revert-set-timer)
+  ;; (add-to-list 'auto-mode-alist '("\\.pdf\\'" . doc-view-mode))
+  ;; (add-hook 'doc-view-mode-hook #'pdf-tools-install)
+  ;; Auto revert
+  ;; (add-hook 'TeX-after-compilation-finished-functions  #'TeX-revert-document-buffer)
+#+end_src
+
+*** Org Noter, Org PDFTools & Org Noter PDFTools
+
+#+begin_src elisp
+  (use-package org-noter
+    :config
+    ;; Your org-noter config ........
+    (require 'org-noter-pdftools))
+
+  (use-package org-pdftools
+    :hook (org-mode . org-pdftools-setup-link))
+
+  (use-package org-noter-pdftools
+    :after org-noter
+    :config
+    ;; Add a function to ensure precise note is inserted
+    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                     (not org-noter-insert-note-no-questions)
+                                                   org-noter-insert-note-no-questions))
+             (org-pdftools-use-isearch-link t)
+             (org-pdftools-use-freepointer-annot t))
+         (org-noter-insert-note (org-noter--get-precise-info)))))
+
+    ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+    (defun org-noter-set-start-location (&optional arg)
+      "When opening a session with this document, go to the current location.
+  With a prefix ARG, remove start location."
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((inhibit-read-only t)
+             (ast (org-noter--parse-root))
+             (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+         (with-current-buffer (org-noter--session-notes-buffer session)
+           (org-with-wide-buffer
+            (goto-char (org-element-property :begin ast))
+            (if arg
+                (org-entry-delete nil org-noter-property-note-location)
+              (org-entry-put nil org-noter-property-note-location
+                             (org-noter--pretty-print-location location))))))))
+    (with-eval-after-load 'pdf-annot
+      (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+#+end_src
+  
+*** Org Roam
+
+#+begin_src elisp
+  (use-package org-roam
+    ;:init
+    ;(setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "/mnt/tsys/sys/roam")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert))
+    :config
+    ;(org-roam-setup)
+    (org-roam-db-autosync-mode))
+  (require 'org-roam)
+  ;; Create the property "type"
+    (cl-defmethod org-roam-node-type ((node org-roam-node))
+      "Return the TYPE of NODE."
+      (condition-case nil
+          (file-name-nondirectory
+           (directory-file-name
+            (file-name-directory
+             (file-relative-name (org-roam-node-file node) org-roam-directory))))
+        (error "")))
+  ;; Display node types
+  (setq org-roam-node-display-template
+        (concat "${type:15} ${title:80} " (propertize "${tags}" 'face 'org-tag)))
+#+end_src
+
+*** Org Ref, Helm Bibtex & ORB
+
+#+begin_src elisp
+  (use-package org-roam-bibtex
+    :ensure t :ensure helm-bibtex :ensure org-ref)
+  ;; Set up bibliography
+  (setq bibtex-completion-bibliography '("/mnt/tsys/sys/roam/bibtex.bib"))
+  ;; Set up notes
+  (setq bibtex-completion-notes-path "/mnt/tsys/sys/roam/")
+  ;; Open pdf files stored in Zotero
+  (setq bibtex-completion-pdf-field "File")
+  ;; Customize layout of search results
+  '((t . "${author:36} ${title:*} ${year:4} ${=has-pdf=:1}${=has-note=:1} ${=type=:7}"))
+  ;; Fields used for searching
+  (setq bibtex-completion-additional-search-fields '(keywords))
+  ;; Org-ref-helm
+  (require 'org-ref-helm)
+  (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+        org-ref-insert-cite-function 'org-ref-cite-insert-helm
+        org-ref-insert-label-function 'org-ref-insert-label-link
+        org-ref-insert-ref-function 'org-ref-insert-ref-link
+        org-ref-cite-onclick-function (lambda (_)
+                                        (org-ref-citation-hydra/body)))
+  ;; Org-ref kbd
+  (define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
+  ;; Org-roam-bibtex
+  (require `org-roam-bibtex)
+  (add-hook 'after-init-hook #'org-roam-bibtex-mode)
+  (define-key org-roam-bibtex-mode-map (kbd "C-c n a") #'orb-note-actions)
+  ;;ORB with Org-noter
+  (setq orb-preformat-keywords
+        '("citekey" "author" "year" "title" "abstract" "keywords" "file")
+        orb-process-file-keyword t
+        orb-file-field-extensions '("pdf"))
+  ;;ORB template
+  (setq org-roam-capture-templates
+        '(("b" "books" plain 
+           (file "~/.emacs.d/capture/books.org")
+           :if-new
+           (file+head "books/%<%Y%m%d%H%M%S>-${citekey}.org"
+                      "#+title: ${author} (${year})\n")
+           :unarrowed t)
+          ("o" "onenote" plain "%?"
+           :if-new
+           (file+head "books/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n")
+           :unnarrowed t)
+          ("v" "videos" plain "%?"
+           :if-new
+           (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+           :unnarrowed t)
+          ("j" "journals" plain
+           (file "~/.emacs.d/capture/journals.org")
+           :if-new
+           (file+head "journals/%<%Y%m%d%H%M%S>-${citekey}.org"
+                      "#+title: ${author} (${year})\n")
+           :unarrowed t)
+          ("m" "manuals" plain "%?"
+           :if-new
+           (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+           :unnarrowed t)
+          ("n" "news" plain "%?"
+           :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+           :unnarrowed t)))
+#+end_src
+
+*** Org-Roam-UI
+
+#+begin_src elisp
+  (use-package org-roam-ui
+    :ensure t :ensure websocket :ensure simple-httpd)
+  (load-library "org-roam-ui")
+  (setq org-roam-ui-open-on-start nil)
+  ;; if org-roam-ui not show citation links, clear db & sync again
+#+end_src
+
+*** ESS
+
+(use-package ess
+    :ensure t
+    :init
+    (require 'ess-site)
+    :config
+    (setq ess-use-company t)
+    (define-key ess-mode-map (kbd "C-;") "<-")
+    (define-key inferior-ess-mode-map (kbd "C-;") "<-")
+    (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
+    (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
+
+  ;; Flycheck for syntax checking
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
+    :config
+    (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
+          flycheck-indication-mode 'left-fringe
+          flycheck-highlighting-mode 'lines))
+
+  ;; Tooltip-style error display (GUI only)
+  (use-package flycheck-posframe
+    :ensure t
+    :after flycheck
+    :hook (flycheck-mode . flycheck-posframe-mode)
+    :config
+    (setq flycheck-posframe-position 'window-bottom-left-corner
+          flycheck-posframe-border-width 1
+          flycheck-posframe-border-color "gray"
+          flycheck-posframe-error-prefix "✖ "
+          flycheck-posframe-warning-prefix "⚠ "
+          flycheck-posframe-info-prefix "ℹ ")
+    (with-eval-after-load 'flycheck-posframe
+      (flycheck-posframe-configure-pretty-defaults)))
+
+  ;; Optional: Keybinding to list all Flycheck errors
+  (global-set-key (kbd "C-c ! l") 'flycheck-list-errors)
+
+  ;; Optional: Font-lock (usually enabled by default)
+  (global-font-lock-mode 1)
+  (add-hook 'org-mode-hook 'turn-on-font-lock)
+#+end_src
+
+*** Yasnippet
+
+#+begin_src elisp
+  (use-package yasnippet
+    :config
+    (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
+    (yas-global-mode 1))
+#+end_src
+
+*** Org-Download
+
+#+begin_src elisp
+  (use-package org-download
+    :config
+    ;; add support to dired
+    (add-hook 'dired-mode-hook 'org-download-enable))
+  (setq-default org-download-image-dir "/mnt/tsys/org-download")
+#+end_src
+
+*** Multiple Cursors
+
+#+begin_src elisp
+  (use-package multiple-cursors
+    :config
+    (global-set-key (kbd "C-c e l") 'mc/edit-lines)
+    (global-set-key (kbd "C-c m n") 'mc/mark-next-like-this)
+    (global-set-key (kbd "C-c m p") 'mc/mark-previous-like-this)
+    (global-set-key (kbd "C-c m a") 'mc/mark-all-like-this))
+#+end_src
+
+*** Transpose Frame
+
+#+begin_src  elisp
+  (use-package transpose-frame)
+#+end_src
+
+*** Command-Log-Mode
+
+#+begin_src elisp
+  (use-package command-log-mode)
+#+end_src
+
+*** Djvu
+
+#+begin_src elisp
+  (use-package djvu)
+#+end_src
+
+*** Nov
+
+#+begin_src elisp
+  (use-package nov)
+#+end_src
+
+*** Company-C-Headers
+
+#+begin_src elisp
+  (use-package company-c-headers)
+  (with-eval-after-load 'company
+    (add-hook 'c++-mode-hook 'company)
+    (add-hook 'c-mode-hook 'company))
+  (add-to-list 'company-backends 'company-c-headers)
+  ;;gcc -xc++ -E -v -
+  (add-to-list 'company-c-headers-path-system "/usr/lib/gcc/x86_64-linux-gnu/11/include")
+  (add-to-list 'company-c-headers-path-system "/usr/include/c++/11")
+#+end_src
+
+*** Clang-Format
+
+#+begin_src elisp
+  (use-package clang-format)
+  (load "/usr/share/emacs/site-lisp/clang-format-14/clang-format.el")
+  ;in the project's root
+  ;clang-format -style=llvm -dump-config > .clang-format
+#+end_src
+
+*** Conda
+
+#+begin_src elisp
+  (use-package conda
+    :config
+    (setq conda-anaconda-home (expand-file-name "~/anaconda3/"))
+    (setq conda-env-home-directory (expand-file-name "~/anaconda3/"))
+    (setq conda-env-subdirectory "envs"))
+  (unless (getenv "CONDA_DEFAULT_ENV")
+    (conda-env-activate "base"))
+#+end_src
+
+*** Jupyter
+
+#+begin_src elisp
+  (use-package jupyter)
+  (setq jupyter-repl-echo-eval-p t)
+#+end_src
+
+*** Jinx
+
+#+begin_src elisp
+  (use-package jinx
+    :hook (emacs-startup . global-jinx-mode)
+    :bind (("M-$" . jinx-correct)
+           ("C-M-$" . jinx-languages)))
+#+end_src
+
+*** Ellama
+
+#+begin_src elisp
+  (use-package ellama
+      :bind ("C-c e" . ellama-transient-main-menu)
+      :init)
+#+end_src
+
+*** Ox-Pandoc
+
+#+begin_src elisp
+  (use-package ox-pandoc
+    :config
+    (setq org-pandoc-options '((standalone . t))))
+#+end_src
+
+*** SQLite
+
+#+begin_src elisp
+  (use-package sqlite3)
+#+end_src
+
+*** Auto-Package-Update
+
+#+begin_src elisp
+  (use-package auto-package-update
+    :ensure t
+    :custom
+    (auto-package-update-interval 7) ;; check every 7 days
+    (auto-package-update-prompt-before-update t) ;; ask before updating
+    (auto-package-update-delete-old-versions t) ;; clean up after updating
+    :config
+    (auto-package-update-maybe))
+#+end_src
+
 * General Setup
 *** UTF-8 Encoding
 
@@ -354,491 +819,51 @@
   (setq org-refile-allow-creating-parent-nodes 'confirm)
 #+end_src
 
-* Packages
-*** Doom Themes
-
-#+begin_src elisp
-  (setq custom-safe-themes t)
-  (use-package doom-themes
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
-    ;; Enable flashing mode-line on errors
-    (doom-themes-visual-bell-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
-#+end_src
-
-*** Solaire Mode
-
-#+begin_src elisp
-  (use-package solaire-mode
-    :config
-    (solaire-global-mode +1))
-#+end_src
-
-*** Doom Modeline
-
-#+begin_src elisp
-  (use-package doom-modeline
-    :init (doom-modeline-mode 1))
-  (add-hook 'inferior-ess-mode-hook
-        (lambda ()
-          (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
-#+end_src
-
-*** Org Superstars
-
-#+begin_src elisp
-  (use-package org-superstar
-       :config
-       (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "❀" "☢" "☯" "✜" "◆" "▶"))
-       (setq org-ellipsis " ▼")
-       (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
-#+end_src
-
-*** All The Icons
-
-#+begin_src elisp
-  (use-package all-the-icons
-    :if (display-graphic-p))
-  ; install all-the-icons and nerd fonts
-#+end_src
-
-*** All The Icons Ivy
-
-#+begin_src elisp
-  (use-package all-the-icons-ivy
-    :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
-#+end_src
-
-*** Ivy, Counsel & Swiper
-
-#+begin_src elisp
-  (use-package ivy
-    :ensure t :ensure counsel :ensure swiper)
-  ;; Enable Ivy mode in general
-  (ivy-mode 1)
-  (setq ivy-use-virtual-buffers t)
-  (setq enable-recursive-minibuffers t)
-  ;; Add Counsel and Swiper search functions
-  (global-set-key (kbd "C-c f r") #'counsel-recentf)
-  (global-set-key (kbd "C-s") #'swiper)
-  ;; Replace default "M-x" and "C-x C-f" with Counsel version
-  (global-set-key (kbd "M-x") #'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") #'counsel-find-file)
-  ;; Replace describe-function and describe-variable with Counsel version
-  (global-set-key (kbd "C-h f") 'counsel-describe-function)
-  (global-set-key (kbd "C-h v") 'counsel-describe-variable)
-#+end_src
- 
-*** Olivetti
-
-#+begin_src elisp
-  (use-package olivetti)
-  ;; Set the body text width
-  (setq olivetti-body-width 80)
-  ;; Enable Olivetti for text-related mode such as Org Mode
-  ;(add-hook 'text-mode-hook 'olivetti-mode)
-#+end_src
-  
-*** Org Fragtog
-
-#+begin_src elisp
-  (use-package org-fragtog)
-  (add-hook 'org-mode-hook 'org-fragtog-mode)
-#+end_src
-
-*** Which Key
-
-#+begin_src elisp
-  (use-package which-key
-    :init (which-key-mode)
-    :diminish which-key-mode
-    :config
-    (setq which-key-idle-delay 0))
-#+end_src
-
-*** Magit
-
-#+begin_src elisp
-  (use-package magit)
-  (global-set-key (kbd "C-c g") 'magit-file-dispatch)
-#+end_src
-
-*** PDF Tools
-
-#+begin_src elisp
-  (use-package pdf-tools)
-  (pdf-loader-install)
-  (setq auto-revert-interval 0.5)
-  (auto-revert-set-timer)
-  ;; (add-to-list 'auto-mode-alist '("\\.pdf\\'" . doc-view-mode))
-  ;; (add-hook 'doc-view-mode-hook #'pdf-tools-install)
-  ;; Auto revert
-  ;; (add-hook 'TeX-after-compilation-finished-functions  #'TeX-revert-document-buffer)
-#+end_src
-
-*** Org Noter, Org PDFTools & Org Noter PDFTools
-
-#+begin_src elisp
-  (use-package org-noter
-    :config
-    ;; Your org-noter config ........
-    (require 'org-noter-pdftools))
-
-  (use-package org-pdftools
-    :hook (org-mode . org-pdftools-setup-link))
-
-  (use-package org-noter-pdftools
-    :after org-noter
-    :config
-    ;; Add a function to ensure precise note is inserted
-    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-      (interactive "P")
-      (org-noter--with-valid-session
-       (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                     (not org-noter-insert-note-no-questions)
-                                                   org-noter-insert-note-no-questions))
-             (org-pdftools-use-isearch-link t)
-             (org-pdftools-use-freepointer-annot t))
-         (org-noter-insert-note (org-noter--get-precise-info)))))
-
-    ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-    (defun org-noter-set-start-location (&optional arg)
-      "When opening a session with this document, go to the current location.
-  With a prefix ARG, remove start location."
-      (interactive "P")
-      (org-noter--with-valid-session
-       (let ((inhibit-read-only t)
-             (ast (org-noter--parse-root))
-             (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-         (with-current-buffer (org-noter--session-notes-buffer session)
-           (org-with-wide-buffer
-            (goto-char (org-element-property :begin ast))
-            (if arg
-                (org-entry-delete nil org-noter-property-note-location)
-              (org-entry-put nil org-noter-property-note-location
-                             (org-noter--pretty-print-location location))))))))
-    (with-eval-after-load 'pdf-annot
-      (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
-#+end_src
-  
-*** Org Roam
-
-#+begin_src elisp
-  (use-package org-roam
-    ;:init
-    ;(setq org-roam-v2-ack t)
-    :custom
-    (org-roam-directory "/mnt/tsys/sys/roam")
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert))
-    :config
-    ;(org-roam-setup)
-    (org-roam-db-autosync-mode))
-  (require 'org-roam)
-  ;; Create the property "type"
-    (cl-defmethod org-roam-node-type ((node org-roam-node))
-      "Return the TYPE of NODE."
-      (condition-case nil
-          (file-name-nondirectory
-           (directory-file-name
-            (file-name-directory
-             (file-relative-name (org-roam-node-file node) org-roam-directory))))
-        (error "")))
-  ;; Display node types
-  (setq org-roam-node-display-template
-        (concat "${type:15} ${title:80} " (propertize "${tags}" 'face 'org-tag)))
-#+end_src
-
-*** Org Ref, Helm Bibtex & ORB
-
-#+begin_src elisp
-  (use-package org-roam-bibtex
-    :ensure t :ensure helm-bibtex :ensure org-ref)
-  ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/tsys/sys/roam/bibtex.bib"))
-  ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/tsys/sys/roam/")
-  ;; Open pdf files stored in Zotero
-  (setq bibtex-completion-pdf-field "File")
-  ;; Customize layout of search results
-  '((t . "${author:36} ${title:*} ${year:4} ${=has-pdf=:1}${=has-note=:1} ${=type=:7}"))
-  ;; Fields used for searching
-  (setq bibtex-completion-additional-search-fields '(keywords))
-  ;; Org-ref-helm
-  (require 'org-ref-helm)
-  (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
-        org-ref-insert-cite-function 'org-ref-cite-insert-helm
-        org-ref-insert-label-function 'org-ref-insert-label-link
-        org-ref-insert-ref-function 'org-ref-insert-ref-link
-        org-ref-cite-onclick-function (lambda (_)
-                                        (org-ref-citation-hydra/body)))
-  ;; Org-ref kbd
-  (define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
-  ;; Org-roam-bibtex
-  (require `org-roam-bibtex)
-  (add-hook 'after-init-hook #'org-roam-bibtex-mode)
-  (define-key org-roam-bibtex-mode-map (kbd "C-c n a") #'orb-note-actions)
-  ;;ORB with Org-noter
-  (setq orb-preformat-keywords
-        '("citekey" "author" "year" "title" "abstract" "keywords" "file")
-        orb-process-file-keyword t
-        orb-file-field-extensions '("pdf"))
-  ;;ORB template
-  (setq org-roam-capture-templates
-        '(("b" "books" plain 
-           (file "~/.emacs.d/capture/books.org")
-           :if-new
-           (file+head "books/%<%Y%m%d%H%M%S>-${citekey}.org"
-                      "#+title: ${author} (${year})\n")
-           :unarrowed t)
-          ("o" "onenote" plain "%?"
-           :if-new
-           (file+head "books/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n")
-           :unnarrowed t)
-          ("v" "videos" plain "%?"
-           :if-new
-           (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
-           :unnarrowed t)
-          ("j" "journals" plain
-           (file "~/.emacs.d/capture/journals.org")
-           :if-new
-           (file+head "journals/%<%Y%m%d%H%M%S>-${citekey}.org"
-                      "#+title: ${author} (${year})\n")
-           :unarrowed t)
-          ("m" "manuals" plain "%?"
-           :if-new
-           (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
-           :unnarrowed t)
-          ("n" "news" plain "%?"
-           :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
-           :unnarrowed t)))
-#+end_src
-
-*** Org-Roam-UI
-
-#+begin_src elisp
-  (use-package org-roam-ui
-    :ensure t :ensure websocket :ensure simple-httpd)
-  (load-library "org-roam-ui")
-  (setq org-roam-ui-open-on-start nil)
-  ;; if org-roam-ui not show citation links, clear db & sync again
-#+end_src
-
-*** ESS
-
-#+begin_src elisp 
-  (use-package ess
-    :ensure t :ensure company)
-  ;; R-mode
-  (add-to-list 'auto-mode-alist '("\\.R\\'" . r-mode))
-  ;; Smart assign
-  (eval-after-load "ess-mode" '(define-key ess-mode-map (kbd "C-;") "<-"))
-  (eval-after-load "ess-mode" '(define-key inferior-ess-mode-map (kbd "C-;") "<-"))
-  (autoload 'ess-rdired "ess-rdired"  
-    "View *R* objects in a dired-like buffer." t)
-  (global-font-lock-mode 1)                     ; for all buffers
-  (add-hook 'org-mode-hook 'turn-on-font-lock)  ; Org buffers only
-  ;; Auto completion
-  (require 'company)
-  (setq tab-always-indent 'complete)
-  (setq company-idle-delay 0.1)
-  (global-company-mode)
-  (with-eval-after-load 'ess
-        (setq ess-use-company t))
-#+end_src
-
-*** Yasnippet
-
-#+begin_src elisp
-  (use-package yasnippet
-    :config
-    (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
-    (yas-global-mode 1))
-#+end_src
-
-*** Org-Download
-
-#+begin_src elisp
-  (use-package org-download
-    :config
-    ;; add support to dired
-    (add-hook 'dired-mode-hook 'org-download-enable))
-  (setq-default org-download-image-dir "/mnt/tsys/org-download")
-#+end_src
-
-*** Multiple Cursors
-
-#+begin_src elisp
-  (use-package multiple-cursors
-    :config
-    (global-set-key (kbd "C-c e l") 'mc/edit-lines)
-    (global-set-key (kbd "C-c m n") 'mc/mark-next-like-this)
-    (global-set-key (kbd "C-c m p") 'mc/mark-previous-like-this)
-    (global-set-key (kbd "C-c m a") 'mc/mark-all-like-this))
-#+end_src
-
-*** Transpose Frame
-
-#+begin_src  elisp
-  (use-package transpose-frame)
-#+end_src
-
-*** Command-Log-Mode
-
-#+begin_src elisp
-  (use-package command-log-mode)
-#+end_src
-
-*** Djvu
-
-#+begin_src elisp
-  (use-package djvu)
-#+end_src
-
-*** Nov
-
-#+begin_src elisp
-  (use-package nov)
-#+end_src
-
-*** Company-C-Headers
-
-#+begin_src elisp
-  (use-package company-c-headers)
-  (with-eval-after-load 'company
-    (add-hook 'c++-mode-hook 'company)
-    (add-hook 'c-mode-hook 'company))
-  (add-to-list 'company-backends 'company-c-headers)
-  ;;gcc -xc++ -E -v -
-  (add-to-list 'company-c-headers-path-system "/usr/lib/gcc/x86_64-linux-gnu/11/include")
-  (add-to-list 'company-c-headers-path-system "/usr/include/c++/11")
-#+end_src
-
-*** Clang-Format
-
-#+begin_src elisp
-  (use-package clang-format)
-  (load "/usr/share/emacs/site-lisp/clang-format-14/clang-format.el")
-  ;in the project's root
-  ;clang-format -style=llvm -dump-config > .clang-format
-#+end_src
-
-*** Conda
-
-#+begin_src elisp
-  (use-package conda
-    :config
-    (setq conda-anaconda-home (expand-file-name "~/anaconda3/"))
-    (setq conda-env-home-directory (expand-file-name "~/anaconda3/"))
-    (setq conda-env-subdirectory "envs"))
-  (unless (getenv "CONDA_DEFAULT_ENV")
-    (conda-env-activate "base"))
-#+end_src
-
-*** Jupyter
-
-#+begin_src elisp
-  (use-package jupyter)
-  (setq jupyter-repl-echo-eval-p t)
-#+end_src
-
-*** Jinx
-
-#+begin_src elisp
-  (use-package jinx
-    :hook (emacs-startup . global-jinx-mode)
-    :bind (("M-$" . jinx-correct)
-           ("C-M-$" . jinx-languages)))
-#+end_src
-
-*** Ellama
-
-#+begin_src elisp
-  (use-package ellama
-      :bind ("C-c e" . ellama-transient-main-menu)
-      :init)
-#+end_src
-
-*** Ox-Pandoc
-
-#+begin_src elisp
-  (use-package ox-pandoc
-    :config
-    (setq org-pandoc-options '((standalone . t))))
-#+end_src
-
-*** Auto-Package-Update
-
-#+begin_src elisp
-  (use-package auto-package-update
-    :ensure t
-    :custom
-    (auto-package-update-interval 7) ;; check every 7 days
-    (auto-package-update-prompt-before-update t) ;; ask before updating
-    (auto-package-update-delete-old-versions t) ;; clean up after updating
-    :config
-    (auto-package-update-maybe))
-#+end_src
-
 * Utility Functions
 *** Update Tags for Latex Formulae
 
 #+begin_src elisp
   (defun butler/update-tag ()
+    "Renumber all \\tag{N} occurrences in the buffer sequentially from 1."
     (interactive)
     (save-excursion
       (goto-char (point-min))
-      (let ((count 1))
-        (while (re-search-forward "\\tag{\\([0-9]+\\)}" nil t)
-          (replace-match (format "%d" count) nil nil nil 1)
-          (setq count (1+ count)))))
-    )
+      (let ((count 1)
+            (pattern "\\\\tag{\\([0-9]+\\)}"))
+        (while (re-search-forward pattern nil t)
+          (replace-match (format "\\\\tag{%d}" count) t nil)
+          (setq count (1+ count))))))
 #+end_src
 
 *** Outline Mode for R
 
 #+begin_src elisp
   (add-hook 'ess-mode-hook
-      '(lambda ()
-      (outline-minor-mode)
-      (setq outline-regexp "^#.*!")
+    (lambda ()
+      (outline-minor-mode 1)
+      (setq-local outline-regexp "^#.*!")
       (defun outline-level ()
-      (cond (looking-at "^#.*!") 1)
-      (t 1000)
-      )
+        (cond ((looking-at "^#.*!") 1)
+              (t 1000)))
       (defun butler/send-section-to-R ()
-      (interactive ())
-      (let ((beg))
-      (if (outline-on-heading-p)
-      (beginning-of-line)
-      (outline-previous-visible-heading 1))
-      (setq beg (point))
-      (set-mark (point))
-      (outline-next-visible-heading 1)
-      (previous-line 1)
-      (end-of-line 1)
-      (ess-eval-region-or-function-or-paragraph-and-step)
-      )
-      )
+        (interactive)
+        (let ((beg))
+          (if (outline-on-heading-p)
+              (beginning-of-line)
+            (outline-previous-visible-heading 1))
+          (setq beg (point))
+          (push-mark beg)
+          (outline-next-visible-heading 1)
+          (forward-line -1)
+          (end-of-line)
+          (ess-eval-region-or-function-or-paragraph-and-step)))
       (local-set-key (kbd "C-c h") 'outline-hide-body)
       (local-set-key (kbd "C-c s") 'outline-show-all)
       (local-set-key (kbd "C-c <left>") 'outline-hide-entry)
       (local-set-key (kbd "C-c <right>") 'outline-show-entry)
       (local-set-key (kbd "C-c <up>") 'outline-previous-heading)
       (local-set-key (kbd "C-c <down>") 'outline-next-heading)
-      (local-set-key (kbd "C-c t") 'send-section-to-R)
-      )
-      )
+      (local-set-key (kbd "C-c t") 'butler/send-section-to-R)))
 #+end_src
 
 *** Read Images in Clipboard in WSL2
