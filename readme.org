@@ -4,9 +4,8 @@
 #+language: en
 #+property: results silent
 
-* Packages
+* MELPA
 *** Doom Themes
-
 #+begin_src elisp
   (setq custom-safe-themes t)
   (use-package doom-themes
@@ -22,7 +21,6 @@
 #+end_src
 
 *** Solaire Mode
-
 #+begin_src elisp
   (use-package solaire-mode
     :config
@@ -30,7 +28,6 @@
 #+end_src
 
 *** Doom Modeline
-
 #+begin_src elisp
   (use-package doom-modeline
     :init (doom-modeline-mode 1))
@@ -40,7 +37,6 @@
 #+end_src
 
 *** Org Superstars
-
 #+begin_src elisp
   (use-package org-superstar
        :config
@@ -50,22 +46,26 @@
 #+end_src
 
 *** All The Icons
-
 #+begin_src elisp
   (use-package all-the-icons
     :if (display-graphic-p))
   ; install all-the-icons and nerd fonts
 #+end_src
 
-*** All The Icons Ivy
+*** Nerd Icons
+#+begin_src elisp
+  (use-package nerd-icons
+      :config
+    (require 'nerd-icons))  
+#+end_src
 
+*** All The Icons Ivy
 #+begin_src elisp
   (use-package all-the-icons-ivy
     :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 #+end_src
 
 *** Ivy, Counsel & Swiper
-
 #+begin_src elisp
   (use-package ivy
     :ensure t :ensure counsel :ensure swiper)
@@ -85,7 +85,6 @@
 #+end_src
  
 *** Olivetti
-
 #+begin_src elisp
   (use-package olivetti)
   ;; Set the body text width
@@ -95,14 +94,12 @@
 #+end_src
   
 *** Org Fragtog
-
 #+begin_src elisp
   (use-package org-fragtog)
   (add-hook 'org-mode-hook 'org-fragtog-mode)
 #+end_src
 
 *** Which Key
-
 #+begin_src elisp
   (use-package which-key
     :init (which-key-mode)
@@ -112,27 +109,24 @@
 #+end_src
 
 *** Magit
-
 #+begin_src elisp
   (use-package magit)
   (global-set-key (kbd "C-c g") 'magit-file-dispatch)
 #+end_src
 
 *** PDF Tools
-
 #+begin_src elisp
-  (use-package pdf-tools)
-  (pdf-loader-install)
-  (setq auto-revert-interval 0.5)
-  (auto-revert-set-timer)
-  ;; (add-to-list 'auto-mode-alist '("\\.pdf\\'" . doc-view-mode))
-  ;; (add-hook 'doc-view-mode-hook #'pdf-tools-install)
-  ;; Auto revert
-  ;; (add-hook 'TeX-after-compilation-finished-functions  #'TeX-revert-document-buffer)
+  ;; Core PDF tools setup
+  (use-package pdf-tools
+    :config
+    (pdf-loader-install)                     ;; Initialize lazily
+    (setq auto-revert-interval 0.5)         ;; More responsive auto-revert
+    (auto-revert-set-timer))
+
+  (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 #+end_src
 
 *** Org Noter, Org PDFTools & Org Noter PDFTools
-
 #+begin_src elisp
   (use-package org-noter
     :config
@@ -174,10 +168,27 @@
                              (org-noter--pretty-print-location location))))))))
     (with-eval-after-load 'pdf-annot
       (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+  ;; fix error org-store-link
+  (with-eval-after-load 'org-pdftools
+    (require 'cl-lib)
+    (defun org-pdftools-abbreviate-file-name (path)
+      (let ((translation-rule
+             (cl-find-if
+              (lambda (rule)
+                (let* ((to rule)
+                       (from (if to (car-safe (prog1 to nil))
+                               (signal 'wrong-number-of-arguments (list 'car-safe nil)))))
+                  (string-prefix-p to path)))
+              org-pdftools-path-translations)))
+        (if translation-rule
+            (let* ((to translation-rule)
+                   (from (if to (car-safe (prog1 to nil))
+                           (signal 'wrong-number-of-arguments (list 'car-safe nil)))))
+              (cl-concatenate 'string from (cl-subseq path (length to))))
+          (abbreviate-file-name path)))))
 #+end_src
-  
-*** Org Roam
 
+*** Org Roam
 #+begin_src elisp
   (use-package org-roam
     ;:init
@@ -202,11 +213,10 @@
         (error "")))
   ;; Display node types
   (setq org-roam-node-display-template
-        (concat "${type:15} ${title:80} " (propertize "${tags}" 'face 'org-tag)))
+        (concat "${type:10} ${title:50} " (propertize "${tags}" 'face 'org-tag)))
 #+end_src
 
 *** Org Ref, Helm Bibtex & ORB
-
 #+begin_src elisp
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
@@ -250,8 +260,13 @@
           ("o" "onenote" plain "%?"
            :if-new
            (file+head "books/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n")
+                      "#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)
+          ("d" "braindump" plain "%?"
+             :if-new
+             (file+head "braindump/%<%Y%m%d%H%M%S>-${slug}.org"
+                        "#+title: ${title}\n#+filetags:\n")
+             :unnarrowed t)
           ("v" "videos" plain "%?"
            :if-new
            (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
@@ -266,16 +281,15 @@
           ("m" "manuals" plain "%?"
            :if-new
            (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n#+filetags:\n")
            :unnarrowed t)
           ("n" "news" plain "%?"
            :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n#+filetags:\n")
            :unnarrowed t)))
 #+end_src
 
 *** Org-Roam-UI
-
 #+begin_src elisp
   (use-package org-roam-ui
     :ensure t :ensure websocket :ensure simple-httpd)
@@ -285,53 +299,52 @@
 #+end_src
 
 *** ESS
+#+begin_src elisp
+  (use-package ess
+      :ensure t
+      :init
+      (require 'ess-site)
+      :config
+      (setq ess-use-company t)
+      (define-key ess-mode-map (kbd "C-;") "<-")
+      (define-key inferior-ess-mode-map (kbd "C-;") "<-")
+      (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
+      (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
 
-(use-package ess
-    :ensure t
-    :init
-    (require 'ess-site)
-    :config
-    (setq ess-use-company t)
-    (define-key ess-mode-map (kbd "C-;") "<-")
-    (define-key inferior-ess-mode-map (kbd "C-;") "<-")
-    (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
-    (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
+    ;; Flycheck for syntax checking
+    (use-package flycheck
+      :ensure t
+      :init (global-flycheck-mode)
+      :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
+      :config
+      (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
+            flycheck-indication-mode 'left-fringe
+            flycheck-highlighting-mode 'lines))
 
-  ;; Flycheck for syntax checking
-  (use-package flycheck
-    :ensure t
-    :init (global-flycheck-mode)
-    :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
-    :config
-    (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
-          flycheck-indication-mode 'left-fringe
-          flycheck-highlighting-mode 'lines))
+    ;; Tooltip-style error display (GUI only)
+    (use-package flycheck-posframe
+      :ensure t
+      :after flycheck
+      :hook (flycheck-mode . flycheck-posframe-mode)
+      :config
+      (setq flycheck-posframe-position 'window-bottom-left-corner
+            flycheck-posframe-border-width 1
+            flycheck-posframe-border-color "gray"
+            flycheck-posframe-error-prefix "✖ "
+            flycheck-posframe-warning-prefix "⚠ "
+            flycheck-posframe-info-prefix "ℹ ")
+      (with-eval-after-load 'flycheck-posframe
+        (flycheck-posframe-configure-pretty-defaults)))
 
-  ;; Tooltip-style error display (GUI only)
-  (use-package flycheck-posframe
-    :ensure t
-    :after flycheck
-    :hook (flycheck-mode . flycheck-posframe-mode)
-    :config
-    (setq flycheck-posframe-position 'window-bottom-left-corner
-          flycheck-posframe-border-width 1
-          flycheck-posframe-border-color "gray"
-          flycheck-posframe-error-prefix "✖ "
-          flycheck-posframe-warning-prefix "⚠ "
-          flycheck-posframe-info-prefix "ℹ ")
-    (with-eval-after-load 'flycheck-posframe
-      (flycheck-posframe-configure-pretty-defaults)))
+    ;; Optional: Keybinding to list all Flycheck errors
+    (global-set-key (kbd "C-c ! l") 'flycheck-list-errors)
 
-  ;; Optional: Keybinding to list all Flycheck errors
-  (global-set-key (kbd "C-c ! l") 'flycheck-list-errors)
-
-  ;; Optional: Font-lock (usually enabled by default)
-  (global-font-lock-mode 1)
-  (add-hook 'org-mode-hook 'turn-on-font-lock)
+    ;; Optional: Font-lock (usually enabled by default)
+    (global-font-lock-mode 1)
+    (add-hook 'org-mode-hook 'turn-on-font-lock)
 #+end_src
 
 *** Yasnippet
-
 #+begin_src elisp
   (use-package yasnippet
     :config
@@ -340,7 +353,6 @@
 #+end_src
 
 *** Org-Download
-
 #+begin_src elisp
   (use-package org-download
     :config
@@ -350,7 +362,6 @@
 #+end_src
 
 *** Multiple Cursors
-
 #+begin_src elisp
   (use-package multiple-cursors
     :config
@@ -361,31 +372,34 @@
 #+end_src
 
 *** Transpose Frame
-
 #+begin_src  elisp
-  (use-package transpose-frame)
+  (use-package transpose-frame
+    :ensure t
+    :commands (transpose-frame flip-frame rotate-frame-clockwise rotate-frame)
+    :init
+    ;; Optional: define handy keybindings
+    (global-set-key (kbd "C-c t t") #'transpose-frame)
+    (global-set-key (kbd "C-c t f") #'flip-frame)
+    (global-set-key (kbd "C-c t r") #'rotate-frame)
+    (global-set-key (kbd "C-c t c") #'rotate-frame-clockwise))
 #+end_src
 
 *** Command-Log-Mode
-
 #+begin_src elisp
   (use-package command-log-mode)
 #+end_src
 
 *** Djvu
-
 #+begin_src elisp
   (use-package djvu)
 #+end_src
 
 *** Nov
-
 #+begin_src elisp
   (use-package nov)
 #+end_src
 
 *** Company-C-Headers
-
 #+begin_src elisp
   (use-package company-c-headers)
   (with-eval-after-load 'company
@@ -398,7 +412,6 @@
 #+end_src
 
 *** Clang-Format
-
 #+begin_src elisp
   (use-package clang-format)
   (load "/usr/share/emacs/site-lisp/clang-format-14/clang-format.el")
@@ -407,7 +420,6 @@
 #+end_src
 
 *** Conda
-
 #+begin_src elisp
   (use-package conda
     :config
@@ -419,14 +431,12 @@
 #+end_src
 
 *** Jupyter
-
 #+begin_src elisp
   (use-package jupyter)
   (setq jupyter-repl-echo-eval-p t)
 #+end_src
 
 *** Jinx
-
 #+begin_src elisp
   (use-package jinx
     :hook (emacs-startup . global-jinx-mode)
@@ -435,7 +445,6 @@
 #+end_src
 
 *** Ellama
-
 #+begin_src elisp
   (use-package ellama
       :bind ("C-c e" . ellama-transient-main-menu)
@@ -443,7 +452,6 @@
 #+end_src
 
 *** Ox-Pandoc
-
 #+begin_src elisp
   (use-package ox-pandoc
     :config
@@ -451,13 +459,11 @@
 #+end_src
 
 *** SQLite
-
 #+begin_src elisp
   (use-package sqlite3)
 #+end_src
 
 *** Auto-Package-Update
-
 #+begin_src elisp
   (use-package auto-package-update
     :ensure t
@@ -469,10 +475,69 @@
     (auto-package-update-maybe))
 #+end_src
 
+* GITHUB
+*** MCQ Balance Engine
+#+begin_src elisp
+  (use-package mcq-balance-engine
+    :load-path "~/.emacs.d/github/mcq-balance-engine"
+    :commands (mcq-persistent-org-combo-shuffler
+               mcq-extract-correct-answers
+               mcq-export-cleaned-questions
+               mcq-check-missing-correct-answers)
+    :init
+    ;; Custom settings before loading
+    (setq mcq-persistent-org-combo-shuffler-max-attempts 500)
+    :config
+    ;; Org-mode keybindings
+    (with-eval-after-load 'org
+      (define-key org-mode-map (kbd "C-c m s") #'mcq-persistent-org-combo-shuffler)
+      (define-key org-mode-map (kbd "C-c m e") #'mcq-extract-correct-answers)
+      (define-key org-mode-map (kbd "C-c m x") #'mcq-export-cleaned-questions)
+      (define-key org-mode-map (kbd "C-c m c") #'mcq-check-missing-correct-answers)))
+#+end_src
+
+*** Easy Draw
+#+begin_src elisp
+  (use-package edraw
+    :load-path "~/.emacs.d/github/el-easydraw"
+    :commands (edraw-mode)
+    :init
+    ;; Enable Easy Draw in Org-mode
+    (with-eval-after-load 'org
+      (require 'edraw-org)
+      (edraw-org-setup-default))
+
+    ;; Enable export support
+    (with-eval-after-load 'ox
+      (require 'edraw-org)
+      (edraw-org-setup-exporter)))
+#+end_src
+
+*** Phscroll
+#+begin_src elisp
+  (use-package phscroll
+    :load-path "~/.emacs.d/github/phscroll" 
+    :commands (phscroll-region phscroll-delete-all phscroll-delete-at phscroll-update-at)
+    :init
+    ;; Optional: Enable phscroll in specific modes or buffers
+    ;; For example, to enable in prog-mode:
+    ;; (add-hook 'prog-mode-hook #'phscroll-mode)
+    )
+
+  ;; Optional: Org-mode integration
+  (use-package org-phscroll
+    :after org
+    :load-path "~/.emacs.d/github/phscroll" 
+    :init
+    (setq org-startup-truncated nil)
+    (add-hook 'org-mode-hook #'org-phscroll-mode))
+#+end_src
+
 * General Setup
 *** UTF-8 Encoding
 
 #+begin_src elisp
+  (set-fontset-font t 'unicode "Noto Sans Symbols" nil 'append)
   (setq locale-coding-system 'utf-8)
   (prefer-coding-system 'utf-8)
   (set-clipboard-coding-system 'utf-8)
@@ -519,11 +584,17 @@
   ;; (setq-default line-spacing 0.5)
   ;; Underline line at descent position, not baseline position
   (setq x-underline-at-descent-line t)
-  ;(setq user-full-name "Thach H. Pham")
+  (setq user-full-name "Thach H. Pham")
   (setq default-frame-alist '((minibuffer . t)))
   (setq org-export-with-toc nil)      ;; Disable table of contents
   ;(setq org-export-with-author nil)  ;; Exclude author name
   (setq org-tags-column 50) ;; All tags will start at column 120
+  (add-to-list 'display-buffer-alist
+               '("\\.pdf\\'"
+                 (display-buffer-in-side-window)
+                 (side . left)
+                 (slot . 1)
+                 (window-width . 0.5)))
 #+end_src
 
 *** XDG-Open
@@ -541,6 +612,8 @@
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda)
   (global-set-key (kbd "C-c c") 'org-capture)
+  ;(setq org-startup-with-inline-images t)
+  ;(add-hook 'org-mode-hook #'org-display-inline-images)
 #+end_src
 
 *** Identation, Heading & Buffer
@@ -566,7 +639,10 @@
           org-hide-leading-stars t
           ;org-pretty-entities t
           org-odd-levels-only t)
-    (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+    (add-hook 'org-babel-after-execute-hook
+            (lambda ()
+              (when org-inline-image-overlays
+                (org-redisplay-inline-images))))
 #+end_src
 
 *** Structure Templates
@@ -820,6 +896,46 @@
 #+end_src
 
 * Utility Functions
+*** Patch
+***** Org-PDFTools
+
+#+begin_src elisp
+  ;; Fix org-noter-pdftools error: void function getf
+  (with-eval-after-load 'org-pdftools
+    (require 'cl-lib)
+
+    (defun my/org-pdftools-open-pdftools (link)
+      "Fixed version of `org-pdftools-open-pdftools` using cl-getf."
+      (let ((pdf-link (org-pdftools-parse-link link)))
+        (cond
+         ((cl-getf pdf-link :path)
+          (let* ((path (cl-getf pdf-link :path))
+                 (page (cl-getf pdf-link :page))
+                 (height (cl-getf pdf-link :height))
+                 (annot-id (cl-getf pdf-link :annot-id))
+                 (search-string (cl-getf pdf-link :search-string)))
+            (when (and path (not (string-empty-p path)))
+              (if (and page (not (string-empty-p page)))
+                  (progn
+                    (org-open-file path 1)
+                    (pdf-view-goto-page (string-to-number page)))
+                (org-open-file path 1)))
+            (when (and height (not (string-empty-p height)))
+              (image-set-window-vscroll (string-to-number height)))
+            (when (and annot-id (not (string-empty-p annot-id)))
+              (pdf-annot-show-annotation annot-id t))
+            (when (and search-string (not (string-empty-p search-string)))
+              (isearch-mode t)
+              (isearch-yank-string search-string))))
+         ((cl-getf pdf-link :pathlist)
+          (pdf-occur-search (cl-getf pdf-link :pathlist)
+                            (cl-getf pdf-link :occur-search-string)))
+         (t (message "Invalid pdf link.")))))
+
+    ;; Override the original function
+    (advice-add 'org-pdftools-open-pdftools :override #'my/org-pdftools-open-pdftools))
+#+end_src
+
 *** Update Tags for Latex Formulae
 
 #+begin_src elisp
@@ -884,427 +1000,4 @@
       (insert (concat "[[file:" file-path-wsl "]]"))
       (message "insert DONE.")))
 #+end_src
-
-*** MCQ Balance Engine
-***** Unique Mixing Heading & Generating Random Exam Code
-
-#+begin_src elisp
-  (require 'cl-lib)
-
-  ;; Shuffle a list using the Fisher-Yates shuffle algorithm.
-  (defun shuffle-list (list)
-    "Return a new shuffled copy of LIST using Fisher–Yates shuffle."
-    (let ((vec (vconcat list)))  ;; Convert the list to a vector for in-place manipulation
-      (cl-loop for i from (1- (length vec)) downto 1
-               do (cl-rotatef (aref vec i) (aref vec (random (1+ i)))))
-      (append vec nil)))  ;; Convert the vector back to a list
-
-  ;; Generate the file name for saving unique combinations.
-  (defun unique-combinations-file-for-org (org-file)
-    (concat (file-name-directory org-file)
-            (file-name-base org-file)
-            "-unique-combinations.el"))
-
-  ;; Load previously saved unique combinations from file.
-  (defun load-unique-combinations (org-file)
-    (let ((data-file (unique-combinations-file-for-org org-file)))
-      (if (file-exists-p data-file)
-          (with-temp-buffer
-            (insert-file-contents data-file)
-            (read (current-buffer)))
-        '())))  ;; Return empty list if no combinations exist.
-
-  ;; Save unique combinations to a file.
-  (defun save-unique-combinations (org-file combinations)
-    (let ((data-file (unique-combinations-file-for-org org-file)))
-      (with-temp-file data-file
-        (prin1 combinations (current-buffer)))))
-
-  ;; Generate the file name for saving used IDs.
-  (defun get-used-ids-file (org-file)
-    (concat org-file ".used-ids.el"))
-
-  ;; Load previously used IDs from file.
-  (defun load-used-ids (org-file)
-    (let ((file (get-used-ids-file org-file)))
-      (if (file-exists-p file)
-          (with-temp-buffer
-            (insert-file-contents file)
-            (read (current-buffer)))
-        '())))  ;; Return empty list if no IDs exist.
-
-  ;; Save used IDs to a file.
-  (defun save-used-ids (org-file ids)
-    (let ((file (get-used-ids-file org-file)))
-      (with-temp-file file
-        (prin1 ids (current-buffer)))))
-
-  ;; Generate a unique random 3-digit ID (between 100 and 999).
-  (defun get-unique-random-id (org-file)
-    "Generate a unique random 3-digit number (100–999)."
-    (let* ((used-ids (load-used-ids org-file))
-           (available-ids (cl-set-difference (number-sequence 100 999) used-ids)))
-      (if (null available-ids)
-          (error "No more unique 3-digit numbers available.")
-        (let ((new-id (nth (random (length available-ids)) available-ids)))
-          (save-used-ids org-file (cons new-id used-ids))
-          new-id))))
-
-  ;; Normalize a combination of headings for comparison (concatenate them into a string).
-  (defun normalize-combination (combo)
-    "Normalize a heading combination for comparison."
-    (mapcar (lambda (heading)
-              (mapconcat #'identity heading "\n"))
-            combo))
-
-  ;; Display a summary of available tags and their counts in a new buffer.
-  (defun display-tag-summary (all-tag-headings)
-    "Display a summary of available tags and their counts in a new buffer."
-    (let ((buffer (get-buffer-create "*Org Tags Summary*")))
-      (with-current-buffer buffer
-        (erase-buffer)
-        (org-mode)
-        (insert "* Below is the list of available tags, and the respective counts represent the maximum number a user can input for each tag:\n\n")
-        (maphash (lambda (tag headings)
-                   (insert (format "** %s: %d available\n" tag (length headings))))
-                 all-tag-headings)
-        (goto-char (point-min)))
-      (pop-to-buffer buffer)))
-
-  ;; Main function that combines headings by tags and allows the user to select a unique combination.
-  (defun butler/mcq-persistent-org-combo-shuffler ()
-    "Select unique org headings by tag-input with persistent uniqueness."
-    (interactive)
-
-    (let* ((org-file (buffer-file-name))
-           (all-tag-headings (make-hash-table :test 'equal))
-           (previous-combinations (load-unique-combinations org-file))
-           final-combination)
-
-  ;; Step 1: Index tags only from top-level parents or leaf nodes
-  (save-excursion
-    (goto-char (point-min))
-    (let ((headings '()))
-      ;; Collect all headings
-      (org-map-entries
-       (lambda ()
-         (let* ((tags (org-get-tags))
-                (level (org-current-level))
-                (begin (point))
-                (end (save-excursion (org-end-of-subtree t t)))
-                (has-children (save-excursion
-                                (goto-char begin)
-                                (re-search-forward (format "^\\*\\{1,%d\\} " (1+ level)) end t)))
-                (content (split-string
-                          (buffer-substring-no-properties
-                           (line-beginning-position)
-                           end)
-                          "\n")))
-           (when tags
-             (push (list :tags tags
-                         :level level
-                         :has-children has-children
-                         :content content)
-                   headings))))
-       nil 'file)
-
-      ;; Build tag index (filter only top-parents or leafs)
-      (let ((filtered-headings
-             (seq-filter (lambda (h)
-                           (let ((lvl (plist-get h :level))
-                                 (kids (plist-get h :has-children)))
-                             (or (and (= lvl 1) kids)  ; top parent with children
-                                 (not kids))))        ; leaf node
-                         headings)))
-        (dolist (h filtered-headings)
-          (dolist (tag (plist-get h :tags))
-            (puthash tag
-                     (cons (plist-get h :content)
-                           (gethash tag all-tag-headings))
-                     all-tag-headings))))))
-      
-      ;; Step 2: Display tag summary
-      (display-tag-summary all-tag-headings)
-
-      ;; Step 3: Tag input validation
-      (let ((tag-counts '())
-            (valid-input nil)
-            (prompt "Enter tags and numbers (e.g., math=2,science=3): "))
-        (while (not valid-input)
-          (let* ((tag-input (read-string prompt))
-                 (parsed-tag-counts '())
-                 (valid t))
-            (if (not (string-blank-p tag-input))
-                (dolist (pair (split-string tag-input "," t))
-                  (let* ((split (split-string pair "="))
-                         (tag (car split))
-                         (count (and (cadr split) (string-to-number (cadr split))))
-                         (available (gethash tag all-tag-headings)))
-                    (if (or (null available) (<= count 0) (< (length available) count))
-                        (setq valid nil)
-                      (push (cons tag count) parsed-tag-counts))))
-              (setq valid nil))
-            (if valid
-                (setq tag-counts (nreverse parsed-tag-counts)
-                      valid-input t)
-              (setq prompt "Wrong input. Re-Enter tags and numbers (e.g., math=2,science=3): "))))
-
-        ;; Step 4: Generate unique combination
-        (let ((attempt 0)
-              (max-attempts 1000)
-              (unique-combo-found nil))
-          (while (and (< attempt max-attempts) (not unique-combo-found))
-            (setq attempt (1+ attempt))
-            (let ((combo '()))
-              (dolist (tag-count tag-counts)
-                (let* ((tag (car tag-count))
-                       (count (cdr tag-count))
-                       (available (shuffle-list (copy-sequence (gethash tag all-tag-headings))))
-                       (selected '()))
-                  (while (and available (< (length selected) count))
-                    (let ((candidate (pop available)))
-                      (unless (or (member candidate selected)
-                                  (seq-some (lambda (combo)
-                                              (seq-some (lambda (x) (equal x candidate)) combo))
-                                            previous-combinations))
-                        (push candidate selected))))
-                  (when (< (length selected) count)
-                    (let ((fallbacks (shuffle-list (copy-sequence (gethash tag all-tag-headings)))))
-                      (while (and fallbacks (< (length selected) count))
-                        (let ((extra (pop fallbacks)))
-                          (unless (member extra selected)
-                            (push extra selected))))))
-                  (setq combo (append combo selected))))
-              (setq combo (shuffle-list combo))
-              (unless (seq-some (lambda (prev)
-                                  (equal (normalize-combination combo)
-                                         (normalize-combination prev)))
-                                previous-combinations)
-                (setq final-combination combo)
-                (setq unique-combo-found t))))
-
-          ;; Step 5: Display result or error
-          (if (not final-combination)
-              (message "Failed to generate unique combo after %d attempts." max-attempts)
-            (push final-combination previous-combinations)
-            (save-unique-combinations org-file previous-combinations)
-            (let ((buffer (get-buffer-create "*Unique Org Headings*"))
-                  (code (get-unique-random-id org-file)))
-              (with-current-buffer buffer
-                (erase-buffer)
-                (org-mode)
-                (insert (format "*Exam code:* %d\n\n" code))
-                (dolist (heading final-combination)
-                  (let ((header-line (car heading)))
-                    (insert header-line "\n")
-                    (let ((prev-line-type nil))
-                      (dolist (line (cdr heading))
-                        (cond
-                         ((string-match-p "^\\s-*:PROPERTIES:" line)
-                          (insert line "\n")
-                          (setq prev-line-type 'prop))
-                         ((string-match-p "^\\s-*:END:" line)
-                          (insert line "\n")
-                          (setq prev-line-type 'prop-end))
-                         ((string-match-p "^\\s-*:.*" line)
-                          (insert line "\n")
-                          (setq prev-line-type 'prop))
-                         ((string-match-p "^\\*+" line)
-                          (when (eq prev-line-type 'prop-end)
-                            (insert "\n"))
-                          (insert line "\n")
-                          (setq prev-line-type 'meta))
-                         (t
-                          ;; Add blank line after properties
-                          (when (memq prev-line-type '(prop prop-end))
-                            (insert "\n"))
-                          ;; Add blank line between content paragraphs
-                          (when (and (eq prev-line-type 'content)
-                                     (not (string-blank-p line)))
-                            (insert "\n"))
-                          (insert line "\n")
-                          (setq prev-line-type 'content))))))
-                  (insert "\n")))
-              (switch-to-buffer buffer)
-              (message "Unique combination generated in %d attempt(s)." attempt)))))))
-#+end_src
-
-***** Extract Correct Answers
-
-#+begin_src elisp
-  (require 'subr-x)  ;; For string-trim
-
-  (defun butler/mcq-extract-correct-answers (file-path)
-    "Extract :Correct: answers from the current Org buffer and save to FILE-PATH as a CSV.
-  Keeps only the most recent answers by deleting everything above the last 'Question,Answer'."
-    (interactive
-     (list (read-file-name "Enter file path to save answers (as CSV): ")))
-
-    ;; Collect answers from Org buffer
-    (let ((answers '("Question,Answer"))
-          (qnum 1))
-      (save-excursion
-        (goto-char (point-min))
-        (while (re-search-forward "^\\s-*:Correct: \\(.*\\)$" nil t)
-          (push (format "%d,%s" qnum (string-trim (match-string 1))) answers)
-          (setq qnum (1+ qnum))))
-
-      ;; Write to temp file
-      (let* ((temp-file (make-temp-file "org-answers-" nil ".csv"))
-             (clean-content ""))
-        (with-temp-file temp-file
-          (insert (mapconcat #'identity (nreverse answers) "\n"))
-          (insert "\n"))
-
-        ;; Keep only from last 'Question,Answer' onward
-        (with-temp-buffer
-          (insert-file-contents temp-file)
-          (goto-char (point-max))
-          (when (re-search-backward "^Question,Answer$" nil t)
-            (setq clean-content (buffer-substring-no-properties (point) (point-max)))))
-
-        ;; Write cleaned content to final file
-        (with-temp-file file-path
-          (insert clean-content)))
-
-      (message "Saved %d answers to %s" (1- qnum) file-path)))
-#+end_src
-
-***** Renumber Questions with Cleaned Formatting
-
-#+begin_src elisp
-  (defun butler/mcq-export-cleaned-questions ()
-    "Reformat Org buffer by renumbering questions as 'Question N' or 'Câu N',
-  removing properties, preserving '*Exam code:* NNN', and asking whether to show tags.
-  Adds blank lines after Org-mode tables but not before them."
-
-    (interactive)
-    (let ((use-vietnamese (y-or-n-p "Use Vietnamese format ('Câu') for question headings? "))
-          (show-tags (y-or-n-p "Show tags in cleaned output? "))
-          (output-buffer (get-buffer-create "*Formatted Questions*"))
-          (count 1)
-          (exam-code-line nil)
-          (inside-table nil))  ;; Track if we are inside a table
-
-      ;; Prepare output buffer
-      (with-current-buffer output-buffer
-        (erase-buffer)
-        (org-mode))
-
-      ;; Scan the buffer
-      (save-excursion
-        (goto-char (point-min))
-
-        ;; Check if exam code line exists
-        (when (re-search-forward "^\\*Exam code:\\*\\s-*\\([0-9]+\\)" nil t)
-          (setq exam-code-line (buffer-substring-no-properties (match-beginning 0) (match-end 0))))
-
-        ;; Write Exam code line first if found
-        (when exam-code-line
-          (with-current-buffer output-buffer
-            (insert exam-code-line "\n\n")))
-
-        ;; Restart scan from beginning
-        (goto-char (point-min))
-
-        ;; Process all headings except Exam code
-        (while (re-search-forward "^\\*+\\s-+\\(.*\\)$" nil t)
-          (let* ((heading-line (match-string 0))
-                 (is-exam-code (string-match "^\\*Exam code:\\*" heading-line))
-                 (start (match-beginning 0))
-                 (end (save-excursion
-                        (if (re-search-forward "^\\*+\\s-" nil t)
-                            (match-beginning 0)
-                          (point-max)))))
-
-            (unless is-exam-code
-              (let ((section (buffer-substring-no-properties start end))
-                    (in-properties nil)
-                    (lines nil)
-                    (tag-part "")
-                    (question-text "")
-                    (body-lines '()))
-
-                ;; Split and parse lines
-                (setq lines (split-string section "\n" t))
-
-                ;; Extract tags from heading
-                (when (string-match ":\\([^:\n]+\\(?::[^:\n]+\\)*\\):\\s-*$" (car lines))
-                  (setq tag-part (match-string 0 (car lines))))
-
-                ;; Skip heading line
-                (setq lines (cdr lines))
-
-                ;; Process lines, skipping :PROPERTIES: drawer
-                (dolist (line lines)
-                  (cond
-                   ((string-match "^\\s-*:PROPERTIES:" line)
-                    (setq in-properties t))
-                   ((string-match "^\\s-*:END:" line)
-                    (setq in-properties nil))
-                   ((not in-properties)
-                    (push line body-lines))))
-
-                (setq body-lines (nreverse body-lines))
-                (setq question-text (car (seq-drop-while #'string-blank-p body-lines)))
-                (setq body-lines (cdr (member question-text body-lines)))
-
-                ;; Insert cleaned heading and content
-                (with-current-buffer output-buffer
-                  (insert (format "*%s %d:* %s" (if use-vietnamese "Câu" "Question") count question-text))
-                  (when (and show-tags tag-part)
-                    (insert "  " tag-part))
-                  (insert "\n\n")
-
-                  ;; Process the body lines
-                  (dolist (line body-lines)
-                    (cond
-                     ;; Table handling: Do NOT add a blank line before, but **always** add one after
-                     ((string-prefix-p "|" line)
-                      (insert line "\n")
-                      (setq inside-table t))
-
-                     ;; End of table: **Force a blank line**
-                     ((and inside-table (not (string-prefix-p "|" line)))
-                      (setq inside-table nil)
-                      (insert "\n" line "\n\n"))  ;; **Ensures a blank line after the table**
-
-                     ;; Non-table content (add blank line after regular content)
-                     (t
-                      (unless (string-blank-p line)
-                        (insert line "\n\n"))))))  ;; Blank line after non-table content
-
-              (setq count (1+ count)))))))
-
-      ;; Show result
-      (switch-to-buffer output-buffer)))
-#+end_src
-
-***** Check Missing Correct Answers
-
-#+begin_src elisp
-  (defun butler/mcq-check-missing-correct-answers ()
-    "Find questions with a blank :Correct: property and show clickable links to fix them."
-    (interactive)
-    (let ((results '()))
-      (org-map-entries
-       (lambda ()
-         (let ((correct (org-entry-get (point) "Correct")))
-           (when (and correct (string-blank-p correct))
-             (let ((link (org-store-link nil)))
-               (push link results)))))
-       nil 'file)
-      (if results
-          (let ((buf (get-buffer-create "*Fix Blank :Correct:*")))
-            (with-current-buffer buf
-              (erase-buffer)
-              (insert "* Questions missing :Correct: value\n\n")
-              (dolist (link (reverse results))
-                (insert "- " link "\n"))
-              (org-mode))
-            (display-buffer buf))
-        (message "All questions have valid :Correct: answers."))))
-#+end_src
-
-
 
