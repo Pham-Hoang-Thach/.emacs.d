@@ -39,19 +39,7 @@
  ;; If there is more than one, they won't work right.
  '(doc-view-continuous t)
  '(org-log-into-drawer t)
- '(package-selected-packages
-   '(all-the-icons-ivy auto-package-update clang-format command-log-mode
-                       company-c-headers conda counsel djvu
-                       doom-modeline doom-themes ellama ess
-                       flycheck-posframe helm-bibtex hydra jinx
-                       jupyter magit mcq-check-missing-correct-answers
-                       mcq-export-cleaned-questions
-                       mcq-extract-correct-answers
-                       mcq-persistent-org-combo-shuffler
-                       multiple-cursors nov olivetti org-download
-                       org-fragtog org-noter-pdftools org-ref
-                       org-roam-bibtex org-roam-ui org-superstar
-                       solaire-mode sqlite3 transpose-frame yasnippet)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
