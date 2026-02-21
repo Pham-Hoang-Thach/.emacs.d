@@ -2,10 +2,10 @@
 #+author: Thach H. Pham
 #+description: Emacs Configurations (Debian)
 #+language: en
-#+property: results silent
+#+PROPERTY: header-args :results silent
 
 * MELPA
-*** Doom Themes
+** Doom Themes
 #+begin_src elisp
   (setq custom-safe-themes t)
   (use-package doom-themes
@@ -20,14 +20,14 @@
     (doom-themes-org-config))
 #+end_src
 
-*** Solaire Mode
+** Solaire Mode
 #+begin_src elisp
   (use-package solaire-mode
     :config
     (solaire-global-mode +1))
 #+end_src
 
-*** Doom Modeline
+** Doom Modeline
 #+begin_src elisp
   (use-package doom-modeline
     :init (doom-modeline-mode 1))
@@ -36,7 +36,7 @@
           (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
 #+end_src
 
-*** Org Superstars
+** Org Superstars
 #+begin_src elisp
   (use-package org-superstar
        :config
@@ -45,27 +45,27 @@
        (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
 #+end_src
 
-*** All The Icons
+** All The Icons
 #+begin_src elisp
   (use-package all-the-icons
     :if (display-graphic-p))
   ; install all-the-icons and nerd fonts
 #+end_src
 
-*** Nerd Icons
+** Nerd Icons
 #+begin_src elisp
   (use-package nerd-icons
       :config
     (require 'nerd-icons))  
 #+end_src
 
-*** All The Icons Ivy
+** All The Icons Ivy
 #+begin_src elisp
   (use-package all-the-icons-ivy
     :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup))
 #+end_src
 
-*** Ivy, Counsel & Swiper
+** Ivy, Counsel & Swiper
 #+begin_src elisp
   (use-package ivy
     :ensure t :ensure counsel :ensure swiper)
@@ -84,7 +84,7 @@
   (global-set-key (kbd "C-h v") 'counsel-describe-variable)
 #+end_src
  
-*** Olivetti
+** Olivetti
 #+begin_src elisp
   (use-package olivetti)
   ;; Set the body text width
@@ -93,13 +93,13 @@
   ;(add-hook 'text-mode-hook 'olivetti-mode)
 #+end_src
   
-*** Org Fragtog
+** Org Fragtog
 #+begin_src elisp
   (use-package org-fragtog)
   (add-hook 'org-mode-hook 'org-fragtog-mode)
 #+end_src
 
-*** Which Key
+** Which Key
 #+begin_src elisp
   (use-package which-key
     :init (which-key-mode)
@@ -108,13 +108,13 @@
     (setq which-key-idle-delay 0))
 #+end_src
 
-*** Magit
+** Magit
 #+begin_src elisp
   (use-package magit)
   (global-set-key (kbd "C-c g") 'magit-file-dispatch)
 #+end_src
 
-*** PDF Tools
+** PDF Tools
 #+begin_src elisp
   ;; Core PDF tools setup
   (use-package pdf-tools
@@ -126,7 +126,7 @@
   (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 #+end_src
 
-*** Org Noter, Org PDFTools & Org Noter PDFTools
+** Org Noter, Org PDFTools & Org Noter PDFTools
 #+begin_src elisp
   (use-package org-noter
     :config
@@ -187,14 +187,13 @@
               (cl-concatenate 'string from (cl-subseq path (length to))))
           (abbreviate-file-name path)))))
 #+end_src
-
-*** Org Roam
+** Org Roam
 #+begin_src elisp
   (use-package org-roam
     ;:init
     ;(setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/pht/emacs/roam")
+    (org-roam-directory "/mnt/pht/emacs/pkm")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -213,17 +212,17 @@
         (error "")))
   ;; Display node types
   (setq org-roam-node-display-template
-        (concat "${type:10} ${title:50} " (propertize "${tags}" 'face 'org-tag)))
+        (concat "${type:10} ${title:50} " (propertize "${tags:0}" 'invisible t)))
 #+end_src
 
-*** Org Ref, Helm Bibtex & ORB
+** Org Ref, Helm Bibtex & ORB
 #+begin_src elisp
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
   ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/pht/emacs/roam/bibtex.bib"))
+  (setq bibtex-completion-bibliography '("/mnt/pht/emacs/pkm/bibtex.bib"))
   ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/pht/emacs/roam/")
+  (setq bibtex-completion-notes-path "/mnt/pht/emacs/pkm/")
   ;; Open pdf files stored in Zotero
   (setq bibtex-completion-pdf-field "File")
   ;; Customize layout of search results
@@ -254,11 +253,11 @@
         '(("b" "books" plain "%?"
            :if-new
            (file+head "books/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+                      "#+title: ${title}\n#+author: Thach H. Pham (PhD)\n#+email: phamhoangthach@gmail.com\n#+options: email:t\n#+filetags:\n#+OPTIONS: toc:t\n")
            :unarrowed t)
-          ("l" "labs" plain "%?"
+          ("c" "cases" plain "%?"
            :if-new
-           (file+head "labs/%<%Y%m%d%H%M%S>-${slug}.org"
+           (file+head "cases/%<%Y%m%d%H%M%S>-${slug}.org"
                       "#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)
           ("d" "braindump" plain "%?"
@@ -266,10 +265,10 @@
              (file+head "braindump/%<%Y%m%d%H%M%S>-${slug}.org"
                         "#+title: ${title}\n#+filetags:\n")
              :unnarrowed t)
-          ("v" "videos" plain "%?"
+          ("e" "exercises" plain "%?"
            :if-new
-           (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+           (file+head "exercises/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)
           ("j" "journals" plain
            (file "~/.emacs.d/capture/journals.org")
@@ -277,6 +276,11 @@
            (file+head "journals/%<%Y%m%d%H%M%S>-${citekey}.org"
                       "#+title: ${author} (${year})\n")
            :unarrowed t)
+          ("l" "labs" plain "%?"
+           :if-new
+           (file+head "labs/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+filetags:\n")
+           :unnarrowed t)
           ("m" "manuals" plain "%?"
            :if-new
            (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
@@ -285,10 +289,24 @@
           ("n" "news" plain "%?"
            :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
                       "#+title: ${title}\n#+ROAM_REFS: ${ref}\n#+filetags:\n")
+           :unnarrowed t)
+          ("p" "procedures" plain "%?"
+           :if-new
+           (file+head "procedures/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+filetags:\n")
+           :unnarrowed t)
+          ("s" "slides" plain "%?"
+           :if-new (file+head "slides/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+filetags:\n")
+           :unnarrowed t)
+          ("v" "videos" plain "%?"
+           :if-new
+           (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
+                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
            :unnarrowed t)))
 #+end_src
 
-*** Org-Roam-UI
+** Org-Roam-UI
 #+begin_src elisp
   (use-package org-roam-ui
     :ensure t :ensure websocket :ensure simple-httpd)
@@ -297,7 +315,7 @@
   ;; if org-roam-ui not show citation links, clear db & sync again
 #+end_src
 
-*** ESS
+** ESS
 #+begin_src elisp
   (use-package ess
     :ensure t
@@ -339,7 +357,7 @@
     (flycheck-posframe-configure-pretty-defaults))
 #+end_src
 
-*** Yasnippet
+** Yasnippet
 #+begin_src elisp
   (use-package yasnippet
     :config
@@ -347,16 +365,7 @@
     (yas-global-mode 1))
 #+end_src
 
-*** Org-Download
-#+begin_src elisp
-  (use-package org-download
-    :config
-    ;; add support to dired
-    (add-hook 'dired-mode-hook 'org-download-enable))
-  (setq-default org-download-image-dir "/mnt/tsys/org-download")
-#+end_src
-
-*** Multiple Cursors
+** Multiple Cursors
 #+begin_src elisp
   (use-package multiple-cursors
     :config
@@ -366,7 +375,7 @@
     (global-set-key (kbd "C-c m a") 'mc/mark-all-like-this))
 #+end_src
 
-*** Transpose Frame
+** Transpose Frame
 #+begin_src  elisp
   (use-package transpose-frame
     :ensure t
@@ -379,22 +388,22 @@
     (global-set-key (kbd "C-c t c") #'rotate-frame-clockwise))
 #+end_src
 
-*** Command-Log-Mode
+** Command-Log-Mode
 #+begin_src elisp
   (use-package command-log-mode)
 #+end_src
 
-*** Djvu
+** Djvu
 #+begin_src elisp
   (use-package djvu)
 #+end_src
 
-*** Nov
+** Nov
 #+begin_src elisp
   (use-package nov)
 #+end_src
 
-*** Conda
+** Conda
 #+begin_src elisp
   (use-package conda
     :config
@@ -405,14 +414,14 @@
     (conda-env-activate "pylab"))
 #+end_src
 
-*** Jupyter
+** Jupyter
 #+begin_src elisp
   (use-package jupyter)
   (setq jupyter-repl-echo-eval-p t)
   (add-to-list 'native-comp-jit-compilation-deny-list ".*emacs-jupyter.*")
 #+end_src
 
-*** Jinx
+** Jinx
 #+begin_src elisp
   (use-package jinx
     :hook (emacs-startup . global-jinx-mode)
@@ -420,19 +429,19 @@
            ("C-M-$" . jinx-languages)))
 #+end_src
 
-*** Ox-Pandoc
+** Ox-Pandoc
 #+begin_src elisp
   (use-package ox-pandoc
     :config
     (setq org-pandoc-options '((standalone . t))))
 #+end_src
 
-*** SQLite
+** SQLite
 #+begin_src elisp
   (use-package sqlite3)
 #+end_src
 
-*** Auto-Package-Update
+** Auto-Package-Update
 #+begin_src elisp
   (use-package auto-package-update
     :ensure t
@@ -445,7 +454,7 @@
 #+end_src
 
 * GITHUB
-*** MCQ Balance Engine
+** MCQ Balance Engine
 #+begin_src elisp
   (use-package mcq-balance-engine
     :load-path "/mnt/pht/github/mcq-balance-engine"
@@ -466,7 +475,7 @@
 #+end_src
 
 * General Setup
-*** UTF-8 Encoding
+** UTF-8 Encoding
 
 #+begin_src elisp
   (set-fontset-font t 'unicode "Noto Sans Symbols" nil 'append)
@@ -483,7 +492,7 @@
   (set-face-attribute 'default nil :height 180)
 #+end_src
 
-*** Stop Emacs Littering
+** Stop Emacs Littering
 
 #+begin_src elisp
   ;; Avoid #file.org# to appear
@@ -493,7 +502,7 @@
   (setq make-backup-files nil)
 #+end_src
 
-*** Additional Aesthetic
+** Additional Aesthetic
 
 #+begin_src elisp
   (show-paren-mode 1)
@@ -516,7 +525,7 @@
   ;; (setq-default line-spacing 0.5)
   ;; Underline line at descent position, not baseline position
   (setq x-underline-at-descent-line t)
-  (setq user-full-name "Thach H. Pham")
+  ;;(setq user-full-name "Thach H. Pham")
   (setq default-frame-alist '((minibuffer . t)))
   (setq org-export-with-toc nil)      ;; Disable table of contents
   ;(setq org-export-with-author nil)  ;; Exclude author name
@@ -530,7 +539,7 @@
 #+end_src
 
 * Org-Mode
-*** Activation
+** Activation
 
 #+begin_src elisp
   (global-set-key (kbd "C-c l") 'org-store-link)
@@ -540,7 +549,7 @@
   ;(add-hook 'org-mode-hook #'org-display-inline-images)
 #+end_src
 
-*** Indentation, Heading & Buffer
+** Indentation, Heading & Buffer
 
 #+begin_src elisp
   ;;Indentation
@@ -558,18 +567,18 @@
   ;;Buffer
     (setq buffer-read-only nil)
     (setq inhibit-read-only t)
-    (setq org-hide-emphasis-markers t
+    (setq org-hide-emphasis-markers nil
           org-fontify-done-headline t
           org-hide-leading-stars t
           ;org-pretty-entities t
-          org-odd-levels-only t)
+          org-odd-levels-only nil)
     (add-hook 'org-babel-after-execute-hook
             (lambda ()
               (when org-inline-image-overlays
                 (org-redisplay-inline-images))))
 #+end_src
 
-*** Structure Templates
+** Structure Templates
 
 #+begin_src elisp
   ;; Org-tempo
@@ -585,7 +594,7 @@
     ;  :hook (org-mode . org-num-mode))
 #+end_src
 
-*** Babel
+** Babel
 
 #+begin_src elisp
   (org-babel-do-load-languages
@@ -608,7 +617,7 @@
                '("r" . "src R :session *r*"))
 #+end_src
 
-*** Latex
+** Latex
 
 #+begin_src elisp
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
@@ -625,6 +634,7 @@
   (setq org-latex-compiler "xelatex")
   (add-to-list 'org-latex-packages-alist '("" "minted"))
   (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
+  (add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
   (setq org-latex-listings 'minted)
   (setq org-latex-pdf-process
         '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
@@ -650,11 +660,11 @@
   (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
 #+end_src
 
-*** GTD
+** GTD
 
 #+begin_src elisp
   ;; Files
-  (setq org-directory "/mnt/tsys/sys/orgmode")
+  (setq org-directory "/mnt/pht/emacs/gtd")
   (setq org-agenda-files (list org-directory))
   (global-set-key (kbd "<f7>") #'org-capture)
   (setq org-capture-templates
@@ -681,7 +691,7 @@
   (setq org-refile-allow-creating-parent-nodes 'confirm)
 #+end_src
 
-*** Org-Publish
+** Org-Publish
 #+begin_src elisp
   (setq org-publish-project-alist
         '(("acb"
@@ -692,9 +702,24 @@
            :publishing-function org-latex-publish-to-pdf)))
 #+end_src
 
+** Yank-Media
+#+begin_src elisp
+  (with-eval-after-load 'org
+    ;; Choose how to save the image: 
+    ;; 'attach (saves to entry's attachment folder) or a string path (e.g., "./images/")
+    (setq org-yank-image-save-method "/mnt/pht/emacs/img/")
+    
+    ;; Choose default action for yanked files/images
+    ;; 'attach, 'file-link (inserts relative path), or 'ask
+    (setq org-yank-dnd-method 'file-link)
+
+    ;; Optional: Automatically display the image after pasting
+    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append))
+#+end_src
+
 * Utility Functions
-*** Patch
-***** Org-PDFTools
+** Patch
+*** Org-PDFTools
 
 #+begin_src elisp
   ;; Fix org-noter-pdftools error: void function getf
@@ -733,7 +758,7 @@
     (advice-add 'org-pdftools-open-pdftools :override #'my/org-pdftools-open-pdftools))
 #+end_src
 
-*** Update Tags for Latex Formulae
+** Update Tags for Latex Formulae
 
 #+begin_src elisp
   (defun butler/update-tag ()
@@ -748,7 +773,7 @@
           (setq count (1+ count))))))
 #+end_src
 
-*** Outline Mode for R
+** Outline Mode for R
 
 #+begin_src elisp
   (add-hook 'ess-mode-hook
@@ -779,7 +804,7 @@
       (local-set-key (kbd "C-c t") 'butler/send-section-to-R)))
 #+end_src
 
-*** Org Latex Clear Source Folder
+** Org Latex Clear Source Folder
 #+begin_src elisp
   (defun my/org-latex-clear-source-folder (&rest _)
     "Deletes all export artifacts, leaving only the .org file in the source folder."

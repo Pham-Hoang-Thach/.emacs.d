@@ -20,10 +20,10 @@
   (when (file-directory-p dir)
     (byte-recompile-directory dir 0 t)))
 ;; start every frame maximized
-;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
-;;(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
-;;    (toggle-frame-maximized)
-;;  (toggle-frame-fullscreen))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
+    (toggle-frame-maximized)
+  (toggle-frame-fullscreen))
 ;; Battery display
 (unless (equal "Battery status not available"
                (battery))

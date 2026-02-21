@@ -1,18 +1,29 @@
-#+filetags: %^{keywords}
-+ Abstract :: %^{abstract}
+#+filetags: dependent-variables independent-variables methodologies tests robustness 
 
 * %^{title}
 :PROPERTIES:
 :AUTHOR: %^{author}
 :YEAR: %^{year}
 :KEYWORDS: %^{keywords}
-:HYPOTHESIS: (Y ~ X1(+), X2(-))
-:METHODOLOGIES: (regressions/data structures/ portfolio analysis)
-:DATA: (where & time)
-:ROBUSTNESS: (Newey-West/ clustering/ subperiods/ out-of-sample/ remove variables or sectors)
-:TEST: (GRS/ Multicollinearity/ Heteroskedasticity)
-:FINDINGS: (reject or accept hypotheses)
-:LIMITATIONS: (limitations)
 :NOTER_DOCUMENT: %^{file}  
 :NOTER_PAGE:               
 :END:
+
+* Abstract :: %^{abstract}
+
+* Hypotheses: (Y ~ X1(+), X2(-))
+
+* Data: (data structure/ where/ time)
+
+* Methodologies: (regressions/ portfolio analysis)
+
+* Tests: (GRS/ Multicollinearity/ Heteroskedasticity)
+
+* Robustness: (Newey-West/ clustering/ subperiods/ out-of-sample/ remove variables or sectors)
+
+* Findings: (reject or accept hypotheses)
+
+* Limitations: (limitations)
+
+
+
