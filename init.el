@@ -48,10 +48,11 @@
                        mcq-export-cleaned-questions
                        mcq-extract-correct-answers
                        mcq-persistent-org-combo-shuffler
-                       multiple-cursors nov olivetti org-download
+                       multiple-cursors nov ob-R olivetti org-download
                        org-fragtog org-noter-pdftools org-ref
                        org-roam-bibtex org-roam-ui org-superstar
-                       solaire-mode sqlite3 transpose-frame yasnippet)))
+                       org2blog solaire-mode sqlite3 transpose-frame
+                       yasnippet)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
