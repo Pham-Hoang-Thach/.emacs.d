@@ -187,13 +187,14 @@
               (cl-concatenate 'string from (cl-subseq path (length to))))
           (abbreviate-file-name path)))))
 #+end_src
+
 ** Org Roam
 #+begin_src elisp
   (use-package org-roam
     ;:init
     ;(setq org-roam-v2-ack t)
     :custom
-    (org-roam-directory "/mnt/pht/emacs/pkm")
+    (org-roam-directory "/mnt/pht/onedrive/emacs/pkm")
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert))
@@ -212,7 +213,7 @@
         (error "")))
   ;; Display node types
   (setq org-roam-node-display-template
-        (concat "${type:10} ${title:50} " (propertize "${tags:0}" 'invisible t)))
+        (concat "${type:12} ${title:80} " (propertize "${tags:0}" 'invisible t)))
 #+end_src
 
 ** Org Ref, Helm Bibtex & ORB
@@ -220,9 +221,9 @@
   (use-package org-roam-bibtex
     :ensure t :ensure helm-bibtex :ensure org-ref)
   ;; Set up bibliography
-  (setq bibtex-completion-bibliography '("/mnt/pht/emacs/pkm/bibtex.bib"))
+  (setq bibtex-completion-bibliography '("/mnt/pht/onedrive/emacs/pkm/bibtex.bib"))
   ;; Set up notes
-  (setq bibtex-completion-notes-path "/mnt/pht/emacs/pkm/")
+  (setq bibtex-completion-notes-path "/mnt/pht/onedrive/emacs/pkm/")
   ;; Open pdf files stored in Zotero
   (setq bibtex-completion-pdf-field "File")
   ;; Customize layout of search results
@@ -620,51 +621,68 @@
 ** Latex
 
 #+begin_src elisp
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-   ;; dvisvgm setup for Latex
-  (setq org-latex-create-formula-image-program 'dvisvgm)
-  (setq org-preview-latex-default-process 'dvisvgm)
-   ;(setq org-preview-latex-process-alist 'dvisvgm)
-   ;(require ‘latex-preview-pane)
-   ;(latex-preview-pane-enable)
-   ;; images preview
+  ;; =============================================================================
+  ;; 1. PREVIEW & UI (Math Equations in Emacs)
+  ;; =============================================================================
   (setq org-startup-with-inline-images t)
   (setq org-startup-with-latex-preview t)
-   ;; highlight code using mint
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
+  ;(setq org-latex-create-formula-image-program 'dvisvgm)
+  (setq org-preview-latex-default-process 'dvisvgm)
+
+  ;; =============================================================================
+  ;; 2. STABILITY & ONEDRIVE FIXES
+  ;; =============================================================================
+  (setq create-lockfiles nil)
+
+  ;; ONLY remove transient artifacts, NOT the source or core link files
+  (setq org-latex-remove-logfiles t)
+  (setq org-latex-logfiles-extensions 
+        '("log" "bbl" "blg" "fdb_latexmk" "fls" "synctex.gz" "xdv"))
+
+  ;; =============================================================================
+  ;; 3. LATEX EXPORT & COMPILER (BYPASS ONEDRIVE I/O ERRORS)
+  ;; =============================================================================
   (setq org-latex-compiler "xelatex")
-  (add-to-list 'org-latex-packages-alist '("" "minted"))
-  (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
-  (add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
-  (setq org-latex-listings 'minted)
+  (setq org-latex-listings t)
+
+  ;; -auxdir=/tmp tells latexmk to put the garbage files in RAM/Local disk
+  ;; -outdir=%o puts the final PDF in your OneDrive folder
   (setq org-latex-pdf-process
-        '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "bibtex %b"
-          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-          "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-   ;; mint style
-   (setq org-latex-minted-options
-         '(;("frame" "lines")
-           ("fontsize" "\\footnotesize")
-           ("mathescape" "")
-           ("samepage" "")
-           ;("xrightmargin" "0.5cm")
-           ("xleftmargin"  "1cm")
-           ("bgcolor" "lightgray")
-           ("linenos")
-           ("firstnumber" "last")
-           ("tabsize" "4")
-           ("autogobble")
-           ("numbersep" "0.5cm")
-           ("breaklines" "true")
-           ))
-  (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
+        '("latexmk -xelatex -pdfxe -f -interaction=nonstopmode -auxdir=/tmp -outdir=%o %f"))
+
+  ;; Turn OFF Emacs' internal cleanup (it causes the Remote I/O error)
+  (setq org-latex-remove-logfiles nil) 
+
+  ;; =============================================================================
+  ;; 4. PACKAGE CONFIGURATION
+  ;; =============================================================================
+  (setq org-latex-packages-alist nil)
+  ;; amsmath and xcolor should usually come early
+  (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
+  (add-to-list 'org-latex-packages-alist '("" "xcolor"))
+  (add-to-list 'org-latex-packages-alist '("" "listings"))
+  (add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
+
+  ;; =============================================================================
+  ;; 5. HYPERREF & COLOR CONSISTENCY
+  ;; =============================================================================
+  (setq org-latex-with-hyperref
+        "\\hypersetup{
+          colorlinks=true,
+          linkcolor=blue,   ; Table of Contents & Internal links
+          citecolor=blue,   ; Citations
+          urlcolor=blue,    ; Web links
+          filecolor=blue,   ; File links
+          anchorcolor=blue
+        }\n")
 #+end_src
 
 ** GTD
 
 #+begin_src elisp
   ;; Files
-  (setq org-directory "/mnt/pht/emacs/gtd")
+  (setq org-directory "/mnt/pht/onedrive/emacs/gtd")
   (setq org-agenda-files (list org-directory))
   (global-set-key (kbd "<f7>") #'org-capture)
   (setq org-capture-templates
@@ -695,10 +713,10 @@
 #+begin_src elisp
   (setq org-publish-project-alist
         '(("acb"
-           :base-directory "/mnt/pht/emacs/roam/"         
-           :recursive t                   
+           :base-directory "/mnt/pht/onedrive/emacs/pkm/"
+           :recursive t
            :base-extension "org"
-           :publishing-directory "/mnt/pht/emacs/export/acb"
+           :publishing-directory "/mnt/pht/onedrive/emacs/export/acb"
            :publishing-function org-latex-publish-to-pdf)))
 #+end_src
 
@@ -707,7 +725,7 @@
   (with-eval-after-load 'org
     ;; Choose how to save the image: 
     ;; 'attach (saves to entry's attachment folder) or a string path (e.g., "./images/")
-    (setq org-yank-image-save-method "/mnt/pht/emacs/img/")
+    (setq org-yank-image-save-method "/mnt/pht/onedrive/emacs/img/")
     
     ;; Choose default action for yanked files/images
     ;; 'attach, 'file-link (inserts relative path), or 'ask
@@ -759,7 +777,6 @@
 #+end_src
 
 ** Update Tags for Latex Formulae
-
 #+begin_src elisp
   (defun butler/update-tag ()
     "Renumber all \\tag{N} occurrences in the buffer sequentially from 1."
@@ -774,7 +791,6 @@
 #+end_src
 
 ** Outline Mode for R
-
 #+begin_src elisp
   (add-hook 'ess-mode-hook
     (lambda ()
@@ -806,26 +822,35 @@
 
 ** Org Latex Clear Source Folder
 #+begin_src elisp
-  (defun my/org-latex-clear-source-folder (&rest _)
-    "Deletes all export artifacts, leaving only the .org file in the source folder."
-    (let* ((base (file-name-sans-extension (buffer-file-name)))
-           (dir (file-name-directory (buffer-file-name)))
-           (node-name (file-name-nondirectory base))
-           ;; List of extensions to kill
-           (extensions '("pdf" "tex" "aux" "log" "out" "bbl" "blg" "toc" "fdb_latexmk" "fls"))
-           ;; Minted folder pattern: _minted-filename
-           (minted-dir (concat dir "_minted-" node-name)))
-
-      ;; 1. Remove files
-      (dolist (ext extensions)
-        (let ((file (concat base "." ext)))
-          (when (file-exists-p file) (delete-file file))))
-
-      ;; 2. Remove minted directory
-      (when (file-directory-p minted-dir)
-        (delete-directory minted-dir t))))
-
-  ;; Trigger this every time you publish a PDF
-  (advice-add 'org-latex-publish-to-pdf :after #'my/org-latex-clear-source-folder)
+  ;(defun my/org-latex-clear-source-folder (plist filename pub-dir)
+  ;  "Deletes LaTeX artifacts from source, keeping ltximg but removing extra PDF."
+  ;  (let* ((base (file-name-sans-extension filename))
+  ;         (dir (file-name-directory filename))
+  ;         (node-name (file-name-nondirectory base))
+  ;         ;; Extensions to remove from SOURCE folder (keeps ltximg)
+  ;         (extensions '("tex" "aux" "log" "out" "bbl" "blg" "toc" "fdb_latexmk" "fls" "synctex.gz" "pdf"))
+  ;         (minted-dir (concat dir "_minted-" node-name)))
+  ;
+  ;    (message "Org-Publish: Starting cleanup for %s ..." node-name)
+  ;
+  ;    ;; 5-second delay to ensure the 'good' PDF is safely moved to the 'acb' folder
+  ;    (run-with-timer 8 nil
+  ;      (lambda (b m exts)
+  ;        ;; Delete auxiliary files and the source PDF copy
+  ;        (dolist (ext exts)
+  ;          (let ((f (concat b "." ext)))
+  ;            (when (file-exists-p f) 
+  ;              (delete-file f))))
+  ;        
+  ;        ;; Delete the _minted directory
+  ;        (when (and m (file-directory-p m)) 
+  ;          (delete-directory m t))
+  ;        
+  ;        (message "Org-Publish: Cleanup Complete for %s." (file-name-nondirectory b)))
+  ;      base minted-dir extensions)))
+  ;
+  ;;; Ensure the advice is active
+  ;(advice-add 'org-latex-publish-to-pdf :after #'my/org-latex-clear-source-folder)
+  ;
 #+end_src
 
