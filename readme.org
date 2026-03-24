@@ -453,12 +453,6 @@
     (conda-env-activate "base"))
 #+end_src
 
-** Jupyter
-#+begin_src elisp
-  (use-package jupyter)
-  (setq jupyter-repl-echo-eval-p t)
-#+end_src
-
 ** Jinx
 #+begin_src elisp
   (use-package jinx
@@ -486,6 +480,15 @@
   (use-package sqlite3)
 #+end_src
 
+** Org Mode
+#+begin_src elisp
+  (use-package org
+    :ensure t
+    :pin org
+    :config
+    (setq org-version "9.6"))
+#+end_src
+
 ** Auto-Package-Update
 #+begin_src elisp
   (use-package auto-package-update
@@ -502,7 +505,7 @@
 ** MCQ Balance Engine
 #+begin_src elisp
   (use-package mcq-balance-engine
-    :load-path "~/.emacs.d/github/mcq-balance-engine"
+    :load-path "/mnt/tsys/emacs/github/mcq-balance-engine"
     :commands (mcq-persistent-org-combo-shuffler
                mcq-extract-correct-answers
                mcq-export-cleaned-questions
@@ -522,7 +525,7 @@
 ** Easy Draw
 #+begin_src elisp
   (use-package edraw
-    :load-path "~/.emacs.d/github/el-easydraw"
+    :load-path "/mnt/tsys/emacs/github/el-easydraw"
     :commands (edraw-mode)
     :init
     ;; Enable Easy Draw in Org-mode
@@ -539,7 +542,7 @@
 ** Phscroll
 #+begin_src elisp
   (use-package phscroll
-    :load-path "~/.emacs.d/github/phscroll" 
+    :load-path "/mnt/tsys/emacs/github/phscroll" 
     :commands (phscroll-region phscroll-delete-all phscroll-delete-at phscroll-update-at)
     :init
     ;; Optional: Enable phscroll in specific modes or buffers
@@ -550,7 +553,7 @@
   ;; Optional: Org-mode integration
   (use-package org-phscroll
     :after org
-    :load-path "~/.emacs.d/github/phscroll" 
+    :load-path "/mnt/tsys/emacs/github/phscroll" 
     :init
     (setq org-startup-truncated nil)
     (add-hook 'org-mode-hook #'org-phscroll-mode))
@@ -686,60 +689,79 @@
                                ;(maxima .t)
                                (python . t)
                                (C . t)
-                               (R . t)
-                               (jupyter . t)))
-  ;(org-babel-jupyter-override-src-block "python")
-  ;(org-babel-jupyter-override-src-block "julia")
-  ;(add-to-list 'org-structure-template-alist
-  ;             '("j" . "src julia :session *jl*"))
+                               (R . t)))
+                    
   (add-to-list 'org-structure-template-alist
                '("p" . "src jupyter-python :session *py*"))
-  ;(add-to-list 'org-structure-template-alist
-  ;             '("m" . "src maxima :session *wxm*"))
+
   (add-to-list 'org-structure-template-alist
                '("r" . "src R :session *r*"))
 #+end_src
 
 ** Latex
 #+begin_src elisp
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-   ;; dvisvgm setup for Latex
-  (setq org-latex-create-formula-image-program 'dvisvgm)
-  (setq org-preview-latex-default-process 'dvisvgm)
-   ;(setq org-preview-latex-process-alist 'dvisvgm)
-   ;(require ‘latex-preview-pane)
-   ;(latex-preview-pane-enable)
-   ;; images preview
+  ;; =============================================================================
+  ;; 1. PREVIEW & UI (Math Equations in Emacs)
+  ;; =============================================================================
   (setq org-startup-with-inline-images t)
   (setq org-startup-with-latex-preview t)
-   ;; highlight code using mint
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
+  ;(setq org-latex-create-formula-image-program 'dvisvgm)
+  (setq org-preview-latex-default-process 'dvisvgm)
+
+  ;; =============================================================================
+  ;; 2. STABILITY & ONEDRIVE FIXES
+  ;; =============================================================================
+  (setq create-lockfiles nil)
+
+  ;; ONLY remove transient artifacts, NOT the source or core link files
+  (setq org-latex-remove-logfiles t)
+  (setq org-latex-logfiles-extensions 
+        '("log" "bbl" "blg" "fdb_latexmk" "fls" "synctex.gz" "xdv"))
+
+  ;; =============================================================================
+  ;; 3. LATEX EXPORT & COMPILER (BYPASS ONEDRIVE I/O ERRORS)
+  ;; =============================================================================
   (setq org-latex-compiler "xelatex")
-  (add-to-list 'org-latex-packages-alist '("" "minted"))
-  (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
-  (setq org-latex-listings 'minted)
+  (setq org-latex-listings t)
+
+  ;; -auxdir=/tmp tells latexmk to put the garbage files in RAM/Local disk
+  ;; -outdir=%o puts the final PDF in your OneDrive folder
   (setq org-latex-pdf-process
-        '("xelatex -shell-escape -interaction=nonstopmode -output-directory %o %f"
-          "bibtex %b"
-          "xelatex -shell-escape -interaction=nonstopmode -output-directory %o %f"
-          "xelatex -shell-escape -interaction=nonstopmode -output-directory %o %f"))
-  ;;(setq org-latex-listings 'listings)
-  ;; mint style
-   (setq org-latex-minted-options
-         '(;("frame" "lines")
-           ("fontsize" "\\footnotesize")
-           ("mathescape" "")
-           ("samepage" "")
-           ;("xrightmargin" "0.5cm")
-           ("xleftmargin"  "1cm")
-           ("bgcolor" "lightgray")
-           ("linenos")
-           ("firstnumber" "last")
-           ("tabsize" "4")
-           ("autogobble")
-           ("numbersep" "0.5cm")
-           ("breaklines" "true")
-           ))
-  (add-to-list 'org-latex-packages-alist '("AUTO" "babel" t ("pdflatex" "xelatex")))
+        '("latexmk -xelatex -pdfxe -f -interaction=nonstopmode -auxdir=/tmp -outdir=%o %f"))
+
+  ;; Turn OFF Emacs' internal cleanup (it causes the Remote I/O error)
+  (setq org-latex-remove-logfiles nil) 
+
+  ;; =============================================================================
+  ;; 4. PACKAGE CONFIGURATION
+  ;; =============================================================================
+  (setq org-latex-packages-alist nil)
+  ;; amsmath and xcolor should usually come early
+  (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
+  (add-to-list 'org-latex-packages-alist '("" "xcolor"))
+  (add-to-list 'org-latex-packages-alist '("" "listings"))
+  (add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
+
+  ;; =============================================================================
+  ;; 5. HYPERREF & COLOR CONSISTENCY
+  ;; =============================================================================
+  (setq org-latex-with-hyperref
+        "\\hypersetup{
+          colorlinks=true,
+          linkcolor=blue,   ; Table of Contents & Internal links
+          citecolor=blue,   ; Citations
+          urlcolor=blue,    ; Web links
+          filecolor=blue,   ; File links
+          anchorcolor=blue
+        }\n")
+
+  (add-to-list 'org-latex-classes
+               '("beamer"
+                 "\\documentclass[presentation]{beamer}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\begin{frame}{%s}" . "\\end{frame}")))
+
   ;; Hide the noisy ox-latex “PDF file produced with errors.” warning
   (advice-add 'display-warning :around
     (lambda (orig type msg &rest args)
@@ -747,8 +769,6 @@
                    (string-match-p "PDF file produced with errors" (format "%s" msg)))
         (apply orig type msg args))))
 #+end_src
-
-#+RESULTS:
 
 ** GTD
 #+begin_src elisp
@@ -907,29 +927,4 @@
                      (apply #'message "Warning (%s): %s" type msg rest)))))
         (apply orig-fun args)))
     (advice-add 'org-latex-compile :around #'butler/org-latex-compile--suppress-warning))
-#+end_src
-
-** Org Latex Clear Source Folder
-#+begin_src elisp
-  (defun my/org-latex-clear-source-folder (&rest _)
-    "Deletes all export artifacts, leaving only the .org file in the source folder."
-    (let* ((base (file-name-sans-extension (buffer-file-name)))
-           (dir (file-name-directory (buffer-file-name)))
-           (node-name (file-name-nondirectory base))
-           ;; List of extensions to kill
-           (extensions '("pdf" "tex" "aux" "log" "out" "bbl" "blg" "toc" "fdb_latexmk" "fls"))
-           ;; Minted folder pattern: _minted-filename
-           (minted-dir (concat dir "_minted-" node-name)))
-
-      ;; 1. Remove files
-      (dolist (ext extensions)
-        (let ((file (concat base "." ext)))
-          (when (file-exists-p file) (delete-file file))))
-
-      ;; 2. Remove minted directory
-      (when (file-directory-p minted-dir)
-        (delete-directory minted-dir t))))
-
-  ;; Trigger this every time you publish a PDF
-  (advice-add 'org-latex-publish-to-pdf :after #'my/org-latex-clear-source-folder)
 #+end_src
