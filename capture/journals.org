@@ -1,15 +1,7 @@
-#+filetags: dependent-variables independent-variables methodologies tests robustness 
+#+filetags: variables methods tests robustness
 
-* %^{title}
-:PROPERTIES:
-:AUTHOR: %^{author}
-:YEAR: %^{year}
-:KEYWORDS: %^{keywords}
-:NOTER_DOCUMENT: %^{file}  
-:NOTER_PAGE:               
-:END:
 
-* Abstract :: %^{abstract}
+* Abstract:
 
 * Hypotheses: (Y ~ X1(+), X2(-))
 

@@ -20,10 +20,12 @@
   (when (file-directory-p dir)
     (byte-recompile-directory dir 0 t)))
 ;; start every frame maximized
-;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
-;;(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
-;;    (toggle-frame-maximized)
-;;  (toggle-frame-fullscreen))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(if (eq initial-window-system 'x)          ; if started by emacs command or desktop file
+    (toggle-frame-maximized)
+  (toggle-frame-fullscreen))
+(setq default-frame-alist '((cursor-type . box)))
+(xterm-mouse-mode 1)
 ;; Battery display
 (unless (equal "Battery status not available"
                (battery))
@@ -40,19 +42,16 @@
  '(doc-view-continuous t)
  '(org-log-into-drawer t)
  '(package-selected-packages
-   '(all-the-icons-ivy auto-package-update clang-format command-log-mode
-                       company-c-headers conda counsel djvu
-                       doom-modeline doom-themes ellama ess
-                       flycheck-posframe helm-bibtex hydra jinx
-                       jupyter magit mcq-check-missing-correct-answers
-                       mcq-export-cleaned-questions
-                       mcq-extract-correct-answers
-                       mcq-persistent-org-combo-shuffler
-                       multiple-cursors nov ob-R olivetti org-download
-                       org-fragtog org-noter-pdftools org-ref
-                       org-roam-bibtex org-roam-ui org-superstar
-                       org2blog solaire-mode sqlite3 transpose-frame
-                       yasnippet)))
+   '(all-the-icons-ivy auto-package-update citar-embark citar-org-roam
+                       clang-format command-log-mode company-c-headers
+                       conda consult counsel djvu doom-modeline
+                       doom-themes ellama embark ess flycheck-posframe
+                       helm-bibtex ivy-rich jinx magit marginalia
+                       multiple-cursors nerd-icons-completion nov
+                       olivetti orderless org-download org-fragtog
+                       org-noter-pdftools org-ref org-roam-bibtex
+                       org-roam-ui org-superstar solaire-mode sqlite3
+                       transpose-frame vertico yasnippet)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
