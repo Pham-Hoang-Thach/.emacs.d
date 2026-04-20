@@ -262,9 +262,9 @@
     :config (citar-embark-mode))
 
   (setq citar-templates
-        '((main . "${author editor:30}  ${year issued date:4}  ${title:65}")
-          (suffix . "          ${=type=:12}")
-          (preview . "")
+        '((main . "${author editor:25}  ${year issued date:4}  ${title:66}")
+          (suffix . "          ${=type=:12}    ${tags keywords:*}")
+          (preview . "${author editor:%etal} (${year issued date}) ${title}, ${=type=}.\n")
           (note . "Notes on ${author editor:%etal} (${year issued date}) ${title}")))
 
   (defvar citar-indicator-notes-icons
@@ -315,40 +315,46 @@
 ** ESS
 #+begin_src elisp
   (use-package ess
-      :ensure t
-      :init
-      (require 'ess-site)
-      :config
-      (setq ess-use-company t)
-      (define-key ess-mode-map (kbd "C-;") "<-")
-      (define-key inferior-ess-mode-map (kbd "C-;") "<-")
-      (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
-      (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
+    :ensure t
+    :init
+    (require 'ess-site)
+    :config
+    (setq ess-use-company t)
+    (define-key ess-mode-map (kbd "C-;") "<-")
+    (define-key inferior-ess-mode-map (kbd "C-;") "<-")
+    (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
+    (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
 
     ;; Flycheck for syntax checking
-    (use-package flycheck
-      :ensure t
-      :init (global-flycheck-mode)
-      :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
-      :config
-      (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
-            flycheck-indication-mode 'left-fringe
-            flycheck-highlighting-mode 'lines))
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode)
+    :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
+     :config
+     (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
+           flycheck-indication-mode 'left-fringe
+           flycheck-highlighting-mode 'lines))
+
+  (with-eval-after-load 'flycheck
+  ;; Remove org-lint globally
+    (setq flycheck-checkers (delq 'org-lint flycheck-checkers))
+  ;; Just to be safe, also disable it explicitly
+    (setq flycheck-disabled-checkers '(org-lint)))
 
     ;; Tooltip-style error display (GUI only)
-    (use-package flycheck-posframe
-      :ensure t
-      :after flycheck
-      :hook (flycheck-mode . flycheck-posframe-mode)
-      :config
-      (setq flycheck-posframe-position 'window-bottom-left-corner
-            flycheck-posframe-border-width 1
-            flycheck-posframe-border-color "gray"
-            flycheck-posframe-error-prefix "✖ "
-            flycheck-posframe-warning-prefix "⚠ "
-            flycheck-posframe-info-prefix "ℹ ")
-      (with-eval-after-load 'flycheck-posframe
-        (flycheck-posframe-configure-pretty-defaults)))
+  (use-package flycheck-posframe
+    :ensure t
+    :after flycheck
+    :hook (flycheck-mode . flycheck-posframe-mode)
+    :config
+    (setq flycheck-posframe-position 'window-bottom-left-corner
+          flycheck-posframe-border-width 1
+          flycheck-posframe-border-color "gray"
+          flycheck-posframe-error-prefix "✖ "
+          flycheck-posframe-warning-prefix "⚠ "
+          flycheck-posframe-info-prefix "ℹ ")
+    (with-eval-after-load 'flycheck-posframe
+      (flycheck-posframe-configure-pretty-defaults)))
 
   ;; Optional: Keybinding to list all Flycheck errors
   (global-set-key (kbd "C-c ! l") 'flycheck-list-errors)
