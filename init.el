@@ -45,12 +45,13 @@
    '(all-the-icons-ivy auto-package-update citar-embark citar-org-roam
                        clang-format command-log-mode company-c-headers
                        conda consult counsel djvu doom-modeline
-                       doom-themes ellama embark ess flycheck-posframe
-                       helm-bibtex ivy-rich jinx magit marginalia
-                       multiple-cursors nerd-icons-completion nov
-                       olivetti orderless org-download org-fragtog
-                       org-noter-pdftools org-ref org-roam-bibtex
-                       org-roam-ui org-superstar solaire-mode sqlite3
+                       doom-themes ellama embark embark-consult ess
+                       flycheck-posframe helm-bibtex ivy-rich jinx
+                       magit marginalia multiple-cursors
+                       nerd-icons-completion nov olivetti orderless
+                       org-download org-fragtog org-noter-pdftools
+                       org-ref org-roam-bibtex org-roam-ui
+                       org-superstar solaire-mode sqlite3
                        transpose-frame vertico yasnippet)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

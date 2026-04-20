@@ -69,15 +69,28 @@
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles basic partial-completion)))))
 
-  (use-package marginalia
-    :init (marginalia-mode))
-
-
   (use-package consult
     :bind (("C-s" . consult-line)))
 
+  (use-package marginalia
+    :ensure t
+    :config
+    (marginalia-mode))
+
   (use-package embark
-    :bind (("C-." . embark-act)))
+    :bind
+    (("C-." . embark-act)         
+     ("C-;" . embark-dwim)        
+     ("C-h B" . embark-bindings)) 
+    :init
+    (setq prefix-help-command #'embark-prefix-help-command)
+    :config
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  (use-package embark-consult)
 #+end_src
  
 ** Olivetti
@@ -249,7 +262,7 @@
     :config (citar-embark-mode))
 
   (setq citar-templates
-        '((main . "${author editor:30}  ${year issued date:4}  ${title:60}")
+        '((main . "${author editor:30}  ${year issued date:4}  ${title:65}")
           (suffix . "          ${=type=:12}")
           (preview . "")
           (note . "Notes on ${author editor:%etal} (${year issued date}) ${title}")))
