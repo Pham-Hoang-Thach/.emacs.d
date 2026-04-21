@@ -914,19 +914,3 @@
       (insert (concat "[[file:" file-path-wsl "]]"))
       (message "insert DONE.")))
 #+end_src
-
-** Suppress the Warning inside org-latex-compile
-
-#+begin_src elisp
-  (with-eval-after-load 'ox-latex
-    (defun butler/org-latex-compile--suppress-warning (orig-fun &rest args)
-      ;; Inside this call, ignore “PDF file produced with errors” warnings
-      (cl-letf (((symbol-function 'display-warning)
-                 (lambda (type msg &rest rest)
-                   (unless (and (memq type '(ox-latex org-latex))
-                                (string-match-p "PDF file produced with errors"
-                                                (format "%s" msg)))
-                     (apply #'message "Warning (%s): %s" type msg rest)))))
-        (apply orig-fun args)))
-    (advice-add 'org-latex-compile :around #'butler/org-latex-compile--suppress-warning))
-#+end_src
