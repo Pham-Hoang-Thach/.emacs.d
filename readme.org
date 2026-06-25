@@ -129,10 +129,13 @@
   (use-package pdf-tools
     :config
     (pdf-loader-install)                     ;; Initialize lazily
-    (setq auto-revert-interval 0.5)         ;; More responsive auto-revert
+    ;(setq auto-revert-interval 0.5)         ;; More responsive auto-revert
     (auto-revert-set-timer))
-
   (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+  (setq pdf-annot-save-annotations nil)
+  (setq pdf-view-use-scaling nil)
+  (add-hook 'pdf-view-mode-hook
+            (lambda () (auto-save-mode -1)))
 #+end_src
 
 ** Org-PDFTools
@@ -240,11 +243,11 @@
           ("m" "manuals" plain "%?"
            :if-new
            (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)
           ("n" "news" plain "%?"
            :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)
           ("p" "procedures" plain "%?"
            :if-new
@@ -258,92 +261,94 @@
           ("v" "videos" plain "%?"
            :if-new
            (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+ROAM_REFS: ${ref}\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
            :unnarrowed t)))
 #+end_src
 
 ** Citar, Org-Cite
 #+begin_src elisp
-  (declare-function org-element-map "org-element")
-  (declare-function org-element-parse-buffer "org-element")
-  (use-package citar
-    :custom
-    (citar-org-roam-capture-template-key "j")  
-    (citar-open-note-function 'citar-org-roam-open-note)
-    (citar-bibliography  '("/mnt/tsys/emacs/pkm/BK-wsl.bib"
-                           "/mnt/tsys/emacs/pkm/JA-wsl.bib"))
-    (citar-library-paths '("/mnt/d/OneDrive/OneDrive - TRƯỜNG ĐẠI HỌC MỞ TP.HCM/src/ZotMoov/"))
-    (citar-notes-paths   '("/mnt/tsys/emacs/pkm/"))
-    :hook
-    (LaTeX-mode . citar-capf-setup)
-    (org-mode . citar-capf-setup))
-  (use-package citar-org-roam
-    :after (citar org-roam)
-    :config
-    (citar-org-roam-mode))
-  (use-package citar
-    :no-require
-    :custom
-    (org-cite-global-bibliography '("/mnt/tsys/emacs/pkm/BK-wsl.bib"
-                                    "/mnt/tsys/emacs/pkm/JA-wsl.bib"))
-    (org-cite-insert-processor 'citar)
-    (org-cite-follow-processor 'citar)
-    (org-cite-activate-processor 'citar)
-    (citar-bibliography org-cite-global-bibliography)
-    :bind
-    (:map org-mode-map
-          ("C-c b" . citar-prefix-map)
-          ("C-c b b" . org-cite-insert)
-          ("C-c b o" . citar-open)
-          ("C-c b r" . citar-org-roam-open-current-refs))
-    :init
-    (define-prefix-command 'citar-prefix-map))
+      (declare-function org-element-map "org-element")
+      (declare-function org-element-parse-buffer "org-element")
+      (use-package citar
+        :custom
+        (citar-org-roam-capture-template-key "j")  
+        (citar-open-note-function 'citar-org-roam-open-note)
+        (citar-bibliography  '("/mnt/tsys/emacs/pkm/BK-wsl.bib"
+                               "/mnt/tsys/emacs/pkm/JA-wsl.bib"
+                               "/mnt/tsys/emacs/pkm/OCW-wsl.bib"))
+        (citar-library-paths '("/mnt/d/OneDrive/OneDrive - TRƯỜNG ĐẠI HỌC MỞ TP.HCM/src/ZotMoov/"))
+        (citar-notes-paths   '("/mnt/tsys/emacs/pkm/"))
+        :hook
+        (LaTeX-mode . citar-capf-setup)
+        (org-mode . citar-capf-setup))
+      (use-package citar-org-roam
+        :after (citar org-roam)
+        :config
+        (citar-org-roam-mode))
+      (use-package citar
+        :no-require
+        :custom
+        (org-cite-global-bibliography '("/mnt/tsys/emacs/pkm/BK-wsl.bib"
+                                        "/mnt/tsys/emacs/pkm/JA-wsl.bib"
+                                        "/mnt/tsys/emacs/pkm/OCW-wsl.bib"))
+        (org-cite-insert-processor 'citar)
+        (org-cite-follow-processor 'citar)
+        (org-cite-activate-processor 'citar)
+        (citar-bibliography org-cite-global-bibliography)
+        :bind
+        (:map org-mode-map
+              ("C-c b" . citar-prefix-map)
+              ("C-c b b" . org-cite-insert)
+              ("C-c b o" . citar-open)
+              ("C-c b r" . citar-org-roam-open-current-refs))
+        :init
+        (define-prefix-command 'citar-prefix-map))
 
-  (use-package citar-embark
-    :after (citar embark)
-    :no-require
-    :config (citar-embark-mode))
+      (use-package citar-embark
+        :after (citar embark)
+        :no-require
+        :config (citar-embark-mode))
 
-  (setq citar-templates
-        '((main . "${author editor:25}  ${year issued date:4}  ${title:66}")
-          (suffix . "          ${=type=:12}    ${tags keywords:*}")
-          (preview . "${author editor:%etal} (${year issued date}) ${title}, ${=type=}.\n")
-          (note . "Notes on ${author editor:%etal} (${year issued date}) ${title}")))
+      (setq citar-templates
+            '((main . "${author editor:25}  ${year issued date:4}  ${title:66}")
+              (suffix . "          ${=type=:12}    ${tags keywords:*}")
+              (preview . "${author editor:%etal} (${year issued date}) ${title}, ${=type=}.\n")
+              (note . "Notes on ${author editor:%etal} (${year issued date}) ${title}")))
 
-  (defvar citar-indicator-notes-icons
-    (citar-indicator-create
-     :symbol (nerd-icons-mdicon
-              "nf-md-notebook"
-              :face 'nerd-icons-blue
-              :v-adjust -0.3)
-     :function #'citar-has-notes
-     :padding "  "
-     :tag "has:notes"))
+      (defvar citar-indicator-notes-icons
+        (citar-indicator-create
+         :symbol (nerd-icons-mdicon
+                  "nf-md-notebook"
+                  :face 'nerd-icons-blue
+                  :v-adjust -0.3)
+         :function #'citar-has-notes
+         :padding "  "
+         :tag "has:notes"))
 
-  (defvar citar-indicator-links-icons
-    (citar-indicator-create
-     :symbol (nerd-icons-octicon
-              "nf-oct-link"
-              :face 'nerd-icons-orange
-              :v-adjust -0.1)
-     :function #'citar-has-links
-     :padding "  "
-     :tag "has:links"))
+      (defvar citar-indicator-links-icons
+        (citar-indicator-create
+         :symbol (nerd-icons-octicon
+                  "nf-oct-link"
+                  :face 'nerd-icons-orange
+                  :v-adjust -0.1)
+         :function #'citar-has-links
+         :padding "  "
+         :tag "has:links"))
 
-  (defvar citar-indicator-files-icons
-    (citar-indicator-create
-     :symbol (nerd-icons-faicon
-              "nf-fa-file"
-              :face 'nerd-icons-green
-              :v-adjust -0.1)
-     :function #'citar-has-files
-     :padding "  "
-     :tag "has:files"))
+      (defvar citar-indicator-files-icons
+        (citar-indicator-create
+         :symbol (nerd-icons-faicon
+                  "nf-fa-file"
+                  :face 'nerd-icons-green
+                  :v-adjust -0.1)
+         :function #'citar-has-files
+         :padding "  "
+         :tag "has:files"))
 
-  (setq citar-indicators
-    (list citar-indicator-files-icons
-          citar-indicator-notes-icons
-          citar-indicator-links-icons))
+      (setq citar-indicators
+        (list citar-indicator-files-icons
+              citar-indicator-notes-icons
+              citar-indicator-links-icons))
 #+end_src
 
 ** Org-Roam-UI
@@ -509,8 +514,7 @@
 ** Ellama
 #+begin_src elisp
   (use-package ellama
-      :bind ("C-c e" . ellama-transient-main-menu)
-      :init)
+    :bind ("C-c e" . ellama))
 #+end_src
 
 ** Ox-Pandoc
@@ -523,15 +527,6 @@
 ** SQLite
 #+begin_src elisp
   (use-package sqlite3)
-#+end_src
-
-** Org Mode
-#+begin_src elisp
-  (use-package org
-    :ensure t
-    :pin org
-    :config
-    (setq org-version "9.6"))
 #+end_src
 
 ** Auto-Package-Update
@@ -679,17 +674,17 @@
   (global-set-key (kbd "C-c l") 'org-store-link)
   (global-set-key (kbd "C-c a") 'org-agenda)
   (global-set-key (kbd "C-c c") 'org-capture)
-  ;(setq org-startup-with-inline-images t)
+  (setq org-startup-with-inline-images t)
   ;(add-hook 'org-mode-hook #'org-display-inline-images)
 #+end_src
 
 ** Indentation, Heading & Buffer
 #+begin_src elisp
   ;;Indentation
-    (setq org-startup-indented t
-          org-src-tab-acts-natively t)
+  (setq org-startup-indented t
+        org-src-tab-acts-natively t)
   ;;Collapse all header
-    (setq org-startup-folded t) ;; nil for expansion
+  (setq org-startup-folded t) ;; nil for expansion
   ;;Show bullets instead of a dash in bullet lists
     ;(font-lock-add-keywords 'org-mode
     ;                        '(("^ *\\([-]\\)
@@ -698,14 +693,15 @@
     ;                        '(("^ *\\([+]\\)
     ;                        (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "◦"))))))
   ;;Buffer
-    (setq buffer-read-only nil)
-    (setq inhibit-read-only t)
-    (setq org-hide-emphasis-markers nil
-          org-fontify-done-headline t
-          org-hide-leading-stars t
-          ;org-pretty-entities t
-          org-odd-levels-only nil)
-    (add-hook 'org-babel-after-execute-hook
+  (setq buffer-read-only nil)
+  (setq inhibit-read-only t)
+  (setq org-hide-emphasis-markers nil
+        org-fontify-done-headline t
+        org-hide-leading-stars t
+        ;org-pretty-entities t
+        org-odd-levels-only nil)
+
+  (add-hook 'org-babel-after-execute-hook
             (lambda ()
               (when org-inline-image-overlays
                 (org-redisplay-inline-images))))
@@ -748,7 +744,6 @@
   ;; =============================================================================
   ;; 1. PREVIEW & UI (Math Equations in Emacs)
   ;; =============================================================================
-  (setq org-startup-with-inline-images t)
   (setq org-startup-with-latex-preview t)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   ;(setq org-latex-create-formula-image-program 'dvisvgm)
@@ -918,3 +913,4 @@
       (insert (concat "[[file:" file-path-wsl "]]"))
       (message "insert DONE.")))
 #+end_src
+
