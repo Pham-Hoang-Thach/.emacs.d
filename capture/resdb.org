@@ -1,0 +1,8 @@
+* %^{title}
+:PROPERTIES:
+:ID: 
+:Team: %^{Team}
+:Journal/Book: %^{Journal}
+:Publication: %^{Date}
+:Keywords: %^{Keywords}
+:END:

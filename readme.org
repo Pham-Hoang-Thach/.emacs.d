@@ -13,7 +13,7 @@
     ;; Global settings (defaults)
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
           doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-acario-light t)
+    (load-theme 'doom-nord t)
     ;; Enable flashing mode-line on errors
     (doom-themes-visual-bell-config)
     ;; Corrects (and improves) org-mode's native fontification.
@@ -36,13 +36,37 @@
           (add-to-list 'mode-line-process '(:eval (nth ess--busy-count ess-busy-strings)))))
 #+end_src
 
-** Org Superstars
+** Org Modern
 #+begin_src elisp
-  (use-package org-superstar
-       :config
-       (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "❀" "☢" "☯" "✜" "◆" "▶"))
-       (setq org-ellipsis " ▼")
-       (add-hook 'org-mode-hook (lambda () (org-superstar-mode 1))))
+  (use-package org-modern)
+  (with-eval-after-load 'org (global-org-modern-mode))
+  ;; Add frame borders and window dividers
+  ;(modify-all-frames-parameters
+  ; '((right-divider-width . 40)
+  ;   (internal-border-width . 40)))
+  (dolist (face '(window-divider
+                  window-divider-first-pixel
+                  window-divider-last-pixel))
+    (face-spec-reset-face face)
+    (set-face-foreground face (face-attribute 'default :background)))
+  (set-face-background 'fringe (face-attribute 'default :background))
+
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities nil
+   org-agenda-tags-column 0
+   org-ellipsis " ▼")
+
+  (setq org-modern-star 'replace
+        org-modern-replace-stars '("◉" "○" "✸" "✿" "❀" "☢" "☯" "✜" "◆" "▶"))
 #+end_src
 
 ** Nerd Icons
@@ -73,7 +97,6 @@
     :bind (("C-s" . consult-line)))
 
   (use-package marginalia
-    :ensure t
     :config
     (marginalia-mode))
 
@@ -136,6 +159,12 @@
   (setq pdf-view-use-scaling nil)
   (add-hook 'pdf-view-mode-hook
             (lambda () (auto-save-mode -1)))
+  ;; Displaying PDFs Inline (like images)
+  (add-to-list 'org-file-apps '("\\.pdf\\'" . org-pdfview-open))
+  (add-to-list 'image-file-name-extensions "pdf")
+  ;; Let Org use ImageMagick to rasterize PDFs
+  (setq org-image-actual-width nil) ;; auto-scale
+  (setq org-preview-latex-default-process 'imagemagick)
 #+end_src
 
 ** Org-PDFTools
@@ -206,62 +235,99 @@
         (error "")))
   ;; Display node types
   (setq org-roam-node-display-template
-        (concat "${type:10} ${title:100} " (propertize "${tags:0}" 'face 'org-tag)))
+        (concat "${type:12} ${title:120} " (propertize "${tags:0}" 'face 'org-tag)))
   ;; Template
   (setq org-roam-capture-templates
-        '(("b" "books" plain "%?"
+        '(("a" "agendas" plain "%?"
+           :if-new
+             (file+head "agendas/%<%Y%m%d%H%M%S>-${slug}.org"
+                        ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+             :unnarrowed t)
+          ("b" "books" plain "%?"
            :if-new
            (file+head "books/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+author: Thach H. Pham (PhD)\n#+email: phamhoangthach@gmail.com\n#+options: email:t\n#+filetags:\n#+OPTIONS: toc:t\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n#+email:\n#+options: email:t\n#+OPTIONS: toc:t\n")
            :unarrowed t)
           ("c" "cases" plain "%?"
            :if-new
            (file+head "cases/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
-          ("d" "braindump" plain "%?"
-             :if-new
-             (file+head "braindump/%<%Y%m%d%H%M%S>-${slug}.org"
-                        "#+title: ${title}\n#+filetags:\n")
-             :unnarrowed t)
-          ("e" "exercises" plain "%?"
+          ("d" "discussion" plain "%?"
            :if-new
-           (file+head "exercises/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+             (file+head "discussion/%<%Y%m%d%H%M%S>-${slug}.org"
+                        ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+             :unnarrowed t)
+          ("e" "emacs" plain "%?"
+           :if-new
+           (file+head "emacs/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("h" "home" plain "%?"
+           :if-new
+           (file+head "home/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("i" "inbox" plain "%?"
+           :if-new
+           (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
           ("j" "journals" plain
            (file "~/.emacs.d/capture/journals.org")
            :target
-           (file+head "%(expand-file-name (concat (or citar-org-roam-subdir \"\") \"journal/\" (format-time-string \"%Y%m%d%H%M%S\") \"-\" \"${citar-citekey}.org\") org-roam-directory)"
-            "#+title: ${citar-title}.\n#+created: %U\n\n")
+           (file+head "%(expand-file-name (concat (or citar-org-roam-subdir \"\") \"journals/\" (format-time-string \"%Y%m%d%H%M%S\") \"-\" \"${citar-citekey}.org\") org-roam-directory)"
+            ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${citar-title}\n")
            :unarrowed t)
           ("l" "labs" plain "%?"
            :if-new
            (file+head "labs/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
           ("m" "manuals" plain "%?"
            :if-new
            (file+head "manuals/%<%Y%m%d%H%M%S>-${slug}.org"
-                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
           ("n" "news" plain "%?"
-           :if-new (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
-                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
-           :unnarrowed t)
-          ("p" "procedures" plain "%?"
            :if-new
-           (file+head "procedures/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+           (file+head "news/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("o" "otexts" plain "%?"
+           :if-new
+           (file+head "otexts/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("p" "projects" plain "%?"
+           :if-new
+           (file+head "projects/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
           ("s" "slides" plain "%?"
-           :if-new (file+head "slides/%<%Y%m%d%H%M%S>-${slug}.org"
-                      "#+title: ${title}\n#+filetags:\n")
+           :if-new
+           (file+head "slides/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("t" "tutorials" plain "%?"
+           :if-new
+           (file+head "tutorials/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("u" "university" plain "%?"
+           :if-new
+           (file+head "university/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)
           ("v" "videos" plain "%?"
            :if-new
            (file+head "videos/%<%Y%m%d%H%M%S>-${slug}.org"
-                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+title: ${title}\n#+filetags:\n")
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
+           :unnarrowed t)
+          ("w" "workshops" plain "%?"
+           :if-new
+           (file+head "workshops/%<%Y%m%d%H%M%S>-${slug}.org"
+                      ":PROPERTIES:\n:ROAM_REFS: ${ref}\n:END:\n#+filetags:\n#+title: ${title}\n")
            :unnarrowed t)))
 #+end_src
 
@@ -310,9 +376,9 @@
         :config (citar-embark-mode))
 
       (setq citar-templates
-            '((main . "${author editor:25}  ${year issued date:4}  ${title:66}")
-              (suffix . "          ${=type=:12}    ${tags keywords:*}")
-              (preview . "${author editor:%etal} (${year issued date}) ${title}, ${=type=}.\n")
+            '((main . "${author editor:30%sn}   ${year issued date:4}   ${title:80}")
+              (suffix . "")
+              (preview . "${author editor:%etal} (${year issued date}) ${title}\n")
               (note . "Notes on ${author editor:%etal} (${year issued date}) ${title}")))
 
       (defvar citar-indicator-notes-icons
@@ -439,9 +505,6 @@
     (global-set-key (kbd "C-c m a") 'mc/mark-all-like-this))
 #+end_src
 
-#+RESULTS:
-: t
-
 ** Transpose Frame
 #+begin_src  elisp
   (use-package transpose-frame
@@ -527,6 +590,36 @@
 ** SQLite
 #+begin_src elisp
   (use-package sqlite3)
+#+end_src
+
+** Consult Org Roam
+#+begin_src elisp
+  (use-package consult-org-roam
+     :after org-roam
+     :init
+     (require 'consult-org-roam)
+     ;; Activate the minor mode
+     (consult-org-roam-mode 1)
+     :custom
+     ;; Use `ripgrep' for searching with `consult-org-roam-search'
+     (consult-org-roam-grep-func #'consult-ripgrep)
+     ;; Configure a custom narrow key for `consult-buffer'
+     (consult-org-roam-buffer-narrow-key ?r)
+     ;; Display org-roam buffers right after non-org-roam buffers
+     ;; in consult-buffer (and not down at the bottom)
+     (consult-org-roam-buffer-after-buffers t)
+     :config
+     ;; Eventually suppress previewing for certain functions
+     (consult-customize
+      consult-org-roam-forward-links
+      :preview-key "M-.")
+     :bind
+     ;; Define some convenient keybindings as an addition
+     ("C-c n e" . consult-org-roam-file-find)
+     ("C-c n b" . consult-org-roam-backlinks)
+     ("C-c n B" . consult-org-roam-backlinks-recursive)
+     ("C-c n l" . consult-org-roam-forward-links)
+     ("C-c n r" . consult-org-roam-search))
 #+end_src
 
 ** Auto-Package-Update
@@ -705,6 +798,8 @@
             (lambda ()
               (when org-inline-image-overlays
                 (org-redisplay-inline-images))))
+
+  (setq org-link-file-path-type 'relative)
 #+end_src
 
 ** Structure Templates
@@ -733,13 +828,13 @@
                                (R . t)))
                     
   (add-to-list 'org-structure-template-alist
-               '("p" . "src jupyter-python :session *py*"))
+               '("p" . "src python :session *py*"))
 
   (add-to-list 'org-structure-template-alist
                '("r" . "src R :session *r*"))
 #+end_src
 
-** Latex
+** LaTex
 #+begin_src elisp
   ;; =============================================================================
   ;; 1. PREVIEW & UI (Math Equations in Emacs)
@@ -781,7 +876,7 @@
   (add-to-list 'org-latex-packages-alist '("" "amsmath" t))
   (add-to-list 'org-latex-packages-alist '("" "xcolor"))
   (add-to-list 'org-latex-packages-alist '("" "listings"))
-  (add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
+  ;;(add-to-list 'org-latex-packages-alist '("margin=2cm" "geometry" t))
 
   ;; =============================================================================
   ;; 5. HYPERREF & COLOR CONSISTENCY
@@ -801,13 +896,6 @@
                  "\\documentclass[presentation]{beamer}"
                  ("\\section{%s}" . "\\section*{%s}")
                  ("\\begin{frame}{%s}" . "\\end{frame}")))
-
-  ;; Hide the noisy ox-latex “PDF file produced with errors.” warning
-  (advice-add 'display-warning :around
-    (lambda (orig type msg &rest args)
-      (unless (and (eq type 'ox-latex)
-                   (string-match-p "PDF file produced with errors" (format "%s" msg)))
-        (apply orig type msg args))))
 #+end_src
 
 ** GTD
@@ -824,6 +912,10 @@
          ("m" "Meeting" entry
           (file "agenda.org")
           (file "~/.emacs.d/capture/agenda.org")
+          :empty-lines-before 1)
+         ("r" "Research" entry
+          (file "resdb.org")
+          (file "~/.emacs.d/capture/resdb.org")
           :empty-lines-before 1)))
   (defun org-capture-inbox ()
     (interactive)
@@ -838,6 +930,20 @@
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
   (setq org-refile-allow-creating-parent-nodes 'confirm)
+
+  (setq org-log-done 'time)      ;; timestamp when DONE
+  (setq org-todo-keywords
+        '((sequence "PLAN(p@!)" 
+                    "DRAFT(d@!)" 
+                    "REVIEW(r@!)" 
+                    "SUBMITTED(s!)" 
+                    "REVISION(v@!)"  
+                    "|" "ACCEPTED(a!)" "REJECTED(j@)")
+          (sequence "TODO(t@!)" 
+                    "ASSIGNED(a@!)" 
+                    "IN-PROGRESS(i@!)" 
+                    "REVIEW(r@!)" 
+                    "|" "DONE(d!)" "CANCELLED(c@)")))
 #+end_src
 
 ** Org-Publish
@@ -914,3 +1020,170 @@
       (message "insert DONE.")))
 #+end_src
 
+** Org-Roam Dashboard
+#+begin_src elisp
+  (require 'seq)
+  (require 'cl-lib)
+
+  ;; Define button type for Org-roam nodes
+  (define-button-type 'org-roam-node-button
+    'follow-link t
+    'help-echo "mouse-1, RET: Open this Org-roam note"
+    'action (lambda (btn)
+              (org-roam-node-open (button-get btn 'node)))
+    'face `(:underline nil :foreground ,(doom-color 'blue)))
+
+  (defun org-roam-backlinks-count (node)
+    "Return number of backlinks (other Org-roam notes linking to NODE)."
+    (length (org-roam-backlinks-get node)))
+
+  (defun org-roam-link-counts (node)
+    "Return a plist with :forward and :meta counts for NODE."
+    (let* ((dest-ids
+            (org-roam-db-query
+             [:select [dest]
+              :from links
+              :where (= source $s1)]
+             (org-roam-node-id node)))
+           (forward 0)
+           (meta 0))
+      (dolist (row dest-ids)
+        (let ((id (car row)))
+          (if (org-roam-node-from-id id)
+              (setq forward (1+ forward))
+            (setq meta (1+ meta)))))
+      (list :forward forward :meta meta)))
+
+  ;; Buffer-local vars to remember filters
+  (defvar-local butler/org-roam-dashboard-tags nil)
+  (defvar-local butler/org-roam-dashboard-types nil)
+
+  (defun butler/insert-refresh-button (label refresh-fn)
+    "Insert a REFRESH button with LABEL that calls REFRESH-FN."
+    (insert-text-button label
+                        'follow-link t
+                        'help-echo "Click to refresh the dashboard"
+                        'face `(:background ,(doom-color 'bg)
+                                :foreground ,(doom-color 'yellow)
+                                :box t)
+                        'refresh-fn refresh-fn
+                        'action (lambda (btn)
+                                  (funcall (button-get btn 'refresh-fn))))
+    (insert "\n\n"))
+
+  ;;; Renderer
+  (defun butler/org-roam-dashboard-render (tags types)
+    "Render Org-roam dashboard with TAGS and TYPES filters."
+    (let* ((all-nodes (org-roam-node-list))
+           (nodes (if (seq-empty-p tags)
+                      all-nodes
+                    (seq-filter
+                     (lambda (n)
+                       (seq-some (lambda (tag) (member tag (org-roam-node-tags n)))
+                                 tags))
+                     all-nodes)))
+           (nodes (if (seq-empty-p types)
+                      nodes
+                    (seq-filter (lambda (n)
+                                  (member (org-roam-node-type n) types))
+                                nodes)))
+           (sorted-nodes
+            (seq-sort-by
+             (lambda (node)
+               (string-to-number
+                (replace-regexp-in-string "\\D.*" ""
+                  (file-name-nondirectory (org-roam-node-file node)))))
+             #'>
+             nodes)))
+      (with-current-buffer (get-buffer-create "*Org-roam Dashboard*")
+        (erase-buffer)
+        ;; Save filters
+        (setq butler/org-roam-dashboard-tags tags
+              butler/org-roam-dashboard-types types)
+        ;; REFRESH button
+        (butler/insert-refresh-button "[ REFRESH ]"
+                                      (lambda ()
+                                        (butler/org-roam-dashboard-render
+                                         butler/org-roam-dashboard-tags
+                                         butler/org-roam-dashboard-types)))
+        ;; Header
+        (insert (format "%-40s %-12s %-25s %-5s %-5s %-5s\n"
+                        "Title" "Type" "Tags" "BL" "FL" "META"))
+        (insert (make-string 100 ?-) "\n")
+        ;; Rows
+        (let ((row-face `(:background ,(doom-color 'bg) :foreground ,(doom-color 'fg))))
+          (dolist (node sorted-nodes)
+            (let* ((title (org-roam-node-title node))
+                   (title (if (> (length title) 40)
+                              (concat (substring title 0 37) "…")
+                            title))
+                   (tags-in-node (org-roam-node-tags node))
+                   (tags-shown (if (seq-empty-p tags)
+                                   tags-in-node
+                                 (seq-filter (lambda (tag) (member tag tags-in-node))
+                                             tags)))
+                   (tags-full (if (seq-empty-p tags-shown) "-" (string-join tags-shown ", ")))
+                   (tags-str (if (> (length tags-full) 25)
+                                 (concat (substring tags-full 0 22) "…")
+                               tags-full))
+                   (type-str (or (org-roam-node-type node) ""))
+                   (backlinks (org-roam-backlinks-count node))
+                   (counts (org-roam-link-counts node))
+                   (forwardlinks (plist-get counts :forward))
+                   (metalinks (plist-get counts :meta))
+                   (timestamp-str (format-time-string "%Y-%m-%d %H:%M"
+                                   (nth 5 (file-attributes (org-roam-node-file node))))))
+              (insert-text-button (format "%-40s" title)
+                                  'type 'org-roam-node-button
+                                  'node node
+                                  'help-echo timestamp-str
+                                  'face `(:underline nil
+                                                     :background ,(doom-color 'bg)
+                                                     :foreground ,(doom-color 'blue)))
+              (insert (propertize
+                       (format " %-12s %-25s %-5d %-5d %-5d\n"
+                               type-str tags-str backlinks forwardlinks metalinks)
+                       'face row-face)))))
+        (goto-char (point-min))
+        (org-mode)
+        (display-buffer (current-buffer)))))
+
+  ;;; Interactive entry point
+  (defun butler/org-roam-dashboard ()
+    "Prompt for filters and show Org-roam dashboard."
+    (interactive)
+    (let* ((all-nodes (org-roam-node-list))
+           (all-tags (delete-dups (apply #'append (mapcar #'org-roam-node-tags all-nodes))))
+           (all-types (delete-dups (mapcar #'org-roam-node-type all-nodes)))
+           (tags (completing-read-multiple "Filter by tags (comma separated, RET for all): "
+                                           all-tags nil t))
+           (types (completing-read-multiple "Filter by types (comma separated, RET for all): "
+                                            all-types nil t)))
+      (butler/org-roam-dashboard-render tags types)))
+#+end_src
+
+** Typewriter
+#+begin_src elisp
+  (defvar typewriter-delay 0.1
+    "Default delay in seconds between characters when simulating typing.")
+
+  (defun butler/typewriter (file &optional delay)
+    "Simulate typing FILE into current buffer with DELAY seconds between chars.
+  Skips the initial Org property drawer (:PROPERTIES: ... :END:) and the #+filetags line."
+    (interactive "fSource file: \nP")
+    (let* ((delay (or delay typewriter-delay))
+           (content (with-temp-buffer
+                      (insert-file-contents file)
+                      (buffer-string))))
+      ;; Remove only the first property drawer if present
+      (when (string-match "\\`.*?:PROPERTIES:[\n\r]\\(.\\|\n\\)*?:END:[\n\r]*" content)
+        (setq content (replace-match "" t t content)))
+      ;; Remove the first #+filetags line if present
+      (when (string-match "^#\\+filetags:.*\n" content)
+        (setq content (replace-match "" t t content)))
+      ;; Type character by character
+      (dolist (char (string-to-list content))
+        (insert (string char))
+        (sit-for delay)
+        (recenter))))
+#+end_src
