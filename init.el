@@ -41,7 +41,16 @@
  ;; If there is more than one, they won't work right.
  '(doc-view-continuous t)
  '(org-log-into-drawer t)
- '(package-selected-packages nil))
+ '(package-selected-packages
+   '(apheleia auto-package-update cape citar-embark citar-org-roam
+              clang-format command-log-mode company-c-headers conda
+              consult-org-roam corfu djvu doom-modeline doom-themes
+              ellama embark-consult ess flycheck-posframe jinx jupyter
+              kind-icon magit marginalia multiple-cursors
+              nerd-icons-completion nov olivetti orderless
+              org-download org-fragtog org-modern org-noter-pdftools
+              org-roam-ui ox-pandoc solaire-mode sqlite3
+              transpose-frame vertico yasnippet)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

@@ -5,6 +5,111 @@
 #+property: header-args :results silent
 
 * MELPA
+** Jupyter
+#+begin_src elisp
+  (use-package jupyter
+    :custom
+    (jupyter-repl-echo-eval-p t))
+#+end_src
+
+** Python
+#+begin_src elisp
+  (use-package python
+    :ensure nil
+    :hook (python-mode . eglot-ensure))
+
+    (defun my/python-ruff-format ()
+    (interactive)
+    (save-buffer)
+    (shell-command
+     (format
+      "ruff format %s"
+      (shell-quote-argument buffer-file-name)))
+    (revert-buffer t t t)
+    (message "Formatted with ruff"))
+
+  (defun my/python-setup ()
+    (local-set-key (kbd "C-c C-f")
+                   #'my/python-ruff-format))
+
+  (add-hook 'python-mode-hook
+            #'my/python-setup)
+#+end_src
+
+** Cape
+#+begin_src elisp
+  (use-package cape
+    :init
+    (add-to-list 'completion-at-point-functions
+                 #'cape-file))
+#+end_src
+
+** Eglot
+#+begin_src elisp
+  (use-package eglot
+    :ensure nil
+    :config
+     (add-to-list
+     'eglot-server-programs
+     '(ess-r-mode
+       . ("R"
+          "--slave"
+          "-e"
+          "languageserver::run()")))
+
+     (add-to-list
+     'eglot-server-programs
+     '(python-mode
+       . ("basedpyright-langserver"
+          "--stdio")))
+
+    ;; tránh duplicate Eldoc cho R
+     (defun my/eglot-r-only-eldoc ()
+      (when (derived-mode-p 'ess-r-mode)
+        (setq-local
+         eglot-ignored-server-capabilities
+         '(:hoverProvider
+           :signatureHelpProvider))))
+
+     (add-hook
+     'eglot-managed-mode-hook
+     #'my/eglot-r-only-eldoc))
+#+end_src
+
+** Corfu
+#+begin_src elisp
+  (use-package corfu
+    :init
+    (global-corfu-mode)
+    :custom
+    (corfu-auto t)
+    (corfu-cycle t)
+    (corfu-auto-delay 0.15)
+    (corfu-auto-prefix 2)
+    (corfu-preview-current nil))
+#+end_src
+
+** Kind Icon
+#+begin_src elisp
+  (use-package kind-icon
+    :after corfu
+    :config
+    (add-to-list 'corfu-margin-formatters
+                 #'kind-icon-margin-formatter))
+#+end_src
+
+** Flymake
+#+begin_src elisp
+  (use-package flymake
+    :ensure nil)
+
+  (global-set-key (kbd "M-n")
+                  #'flymake-goto-next-error)
+
+  (global-set-key (kbd "M-p")
+                  #'flymake-goto-prev-error)
+#+end_src
+
 ** Doom Themes
 #+begin_src elisp
   (setq custom-safe-themes t)
@@ -97,7 +202,7 @@
     :bind (("C-s" . consult-line)))
 
   (use-package marginalia
-    :config
+    :init
     (marginalia-mode))
 
   (use-package embark
@@ -124,7 +229,7 @@
   ;; Enable Olivetti for text-related mode such as Org Mode
   ;(add-hook 'text-mode-hook 'olivetti-mode)
 #+end_src
-  
+
 ** Org Fragtog
 #+begin_src elisp
   (use-package org-fragtog)
@@ -433,50 +538,37 @@
     :ensure t
     :init
     (require 'ess-site)
+
+    :hook
+    ((ess-r-mode . eglot-ensure)
+     (ess-r-mode . eldoc-mode)
+     (ess-r-mode . butler/ess-r-setup))
+
     :config
-    (setq ess-use-company t)
-    (define-key ess-mode-map (kbd "C-;") "<-")
-    (define-key inferior-ess-mode-map (kbd "C-;") "<-")
-    (autoload 'ess-rdired "ess-rdired" "View *R* objects in a dired-like buffer." t)
-    (define-key ess-mode-map (kbd "C-c C-d") 'ess-rdired))
+    (setq ess-use-eldoc t
+          ess-eval-visibly 'nowait
+          ess-ask-for-ess-directory nil
+          ess-history-file t)
 
-    ;; Flycheck for syntax checking
-  (use-package flycheck
-    :ensure t
-    :init (global-flycheck-mode)
-    :hook ((ess-mode inferior-ess-mode) . flycheck-mode)
-     :config
-     (setq flycheck-lintr-linters "with_defaults(line_length_linter = line_length_linter(120))"
-           flycheck-indication-mode 'left-fringe
-           flycheck-highlighting-mode 'lines))
+    (autoload 'ess-rdired
+      "ess-rdired"
+      "View R objects in a dired-like buffer."
+      t))
 
-  (with-eval-after-load 'flycheck
-  ;; Remove org-lint globally
-    (setq flycheck-checkers (delq 'org-lint flycheck-checkers))
-  ;; Just to be safe, also disable it explicitly
-    (setq flycheck-disabled-checkers '(org-lint)))
+  (defun butler/r-styler-format ()
+      (interactive)
+      (save-buffer)
+      (shell-command
+       (format
+        "Rscript -e \"styler::style_file('%s')\""
+        (buffer-file-name)))
+      (revert-buffer t t t)
+      (message "Formatted with styler"))
 
-    ;; Tooltip-style error display (GUI only)
-  (use-package flycheck-posframe
-    :ensure t
-    :after flycheck
-    :hook (flycheck-mode . flycheck-posframe-mode)
-    :config
-    (setq flycheck-posframe-position 'window-bottom-left-corner
-          flycheck-posframe-border-width 1
-          flycheck-posframe-border-color "gray"
-          flycheck-posframe-error-prefix "✖ "
-          flycheck-posframe-warning-prefix "⚠ "
-          flycheck-posframe-info-prefix "ℹ ")
-    (with-eval-after-load 'flycheck-posframe
-      (flycheck-posframe-configure-pretty-defaults)))
-
-  ;; Optional: Keybinding to list all Flycheck errors
-  (global-set-key (kbd "C-c ! l") 'flycheck-list-errors)
-
-  ;; Optional: Font-lock (usually enabled by default)
-  (global-font-lock-mode 1)
-  (add-hook 'org-mode-hook 'turn-on-font-lock)
+  (defun butler/ess-r-setup ()
+    (local-set-key (kbd "C-;") #'ess-insert-assign)
+    (local-set-key (kbd "C-c C-d") #'ess-rdired)
+    (local-set-key (kbd "C-c C-f") #'butler/r-styler-format))
 #+end_src
 
 ** Yasnippet
